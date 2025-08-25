@@ -51,23 +51,24 @@
                 <div class="mb-4">
                     <div class="flex items-center justify-between px-2 py-1 mb-1">
                         <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Teamspaces</span>
-                        <button class="w-4 h-4 text-gray-400 hover:text-gray-600" onclick="document.getElementById('new-team-form').classList.toggle('hidden')">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                            </svg>
-                        </button>
-                    </div>
-                    
-                    <!-- New Team Form (hidden by default) -->
-                    <div id="new-team-form" class="hidden mb-2 px-2">
-                        <form action="{{ route('teams.store') }}" method="POST" class="space-y-2">
-                            @csrf
-                            <input type="text" name="name" placeholder="Team name" 
-                                   class="w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
-                            <button type="submit" class="w-full px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">
-                                Create
-                            </button>
-                        </form>
+                        <details>
+                            <summary class="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-pointer list-none">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                </svg>
+                            </summary>
+                            <!-- New Team Form -->
+                            <div class="mb-2 px-2 mt-2">
+                                <form action="{{ route('teams.store') }}" method="POST" class="space-y-2">
+                                    @csrf
+                                    <input type="text" name="name" placeholder="Team name" 
+                                           class="w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                    <button type="submit" class="w-full px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">
+                                        Create
+                                    </button>
+                                </form>
+                            </div>
+                        </details>
                     </div>
                     
                     <div class="space-y-1">
@@ -118,16 +119,13 @@
                     </div>
                     <div class="flex items-center space-x-2">
                         <!-- New Task Button -->
-                        <button onclick="document.getElementById('new-task-form').classList.toggle('hidden')" 
-                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium">
-                            New
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- New Task Form (hidden by default) -->
-            <div id="new-task-form" class="hidden bg-gray-50 border-b px-6 py-4">
+                        <details>
+                            <summary class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium cursor-pointer list-none">
+                                New
+                            </summary>
+                            
+                            <!-- New Task Form -->
+                            <div class="absolute top-full left-0 right-0 bg-gray-50 border-b px-6 py-4 z-10">
                 @if(isset($currentTeam))
                     <form action="{{ route('tasks.store') }}" method="POST" class="space-y-4">
                         @csrf
@@ -182,15 +180,15 @@
                             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm">
                                 Create Task
                             </button>
-                            <button type="button" onclick="document.getElementById('new-task-form').classList.add('hidden')" 
-                                    class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded text-sm">
-                                Cancel
-                            </button>
                         </div>
                     </form>
                 @else
                     <p class="text-gray-500">Please create or select a team first.</p>
                 @endif
+                            </div>
+                        </details>
+                    </div>
+                </div>
             </div>
 
             <!-- Task Database Table -->
@@ -284,8 +282,7 @@
                                                     <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" class="inline">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" onclick="return confirm('Are you sure?')" 
-                                                                class="text-red-400 hover:text-red-600">
+                                                        <button type="submit" class="text-red-400 hover:text-red-600">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                             </svg>
@@ -313,31 +310,19 @@
     </div>
 
     @if(session('success'))
-        <div id="success-message" class="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
+        <div class="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
             {{ session('success') }}
         </div>
-        <script>
-            setTimeout(() => {
-                const msg = document.getElementById('success-message');
-                if (msg) msg.remove();
-            }, 5000);
-        </script>
     @endif
 
     @if($errors->any())
-        <div id="error-message" class="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
+        <div class="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
             <ul>
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
             </ul>
         </div>
-        <script>
-            setTimeout(() => {
-                const msg = document.getElementById('error-message');
-                if (msg) msg.remove();
-            }, 5000);
-        </script>
     @endif
 </body>
 </html>

@@ -55,16 +55,16 @@ class TaskController extends Controller
         return redirect()->route('teams.show', $team->id)->with('success', 'Task created successfully!');
     }
 
-    public function show(Task $task, Request $request): JsonResponse
+    public function show(Task $task, Request $request)
     {
         // Check if user has access to this task
         if (!$task->team->users()->where('user_id', $request->user()->id)->exists()) {
-            return response()->json(['message' => 'Access denied'], 403);
+            return back()->withErrors(['error' => 'Access denied']);
         }
 
-        return response()->json([
-            'task' => $task->load(['assignee', 'creator', 'team', 'comments.user', 'tags'])
-        ]);
+        $task = $task->load(['assignee', 'creator', 'team', 'comments.user', 'tags']);
+        
+        return view('task-detail', compact('task'));
     }
 
     public function update(Request $request, Task $task)
