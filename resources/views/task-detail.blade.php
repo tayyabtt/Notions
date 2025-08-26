@@ -157,6 +157,12 @@
                                 <textarea name="content" rows="3" 
                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" 
                                           placeholder="Add a comment... Type @username to mention someone"></textarea>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    <strong>Team members:</strong> 
+                                    @foreach($task->team->users as $user)
+                                        <span class="inline-block mr-2">@{{ strtolower(str_replace(' ', '', $user->name)) }}</span>
+                                    @endforeach
+                                </div>
                                 <div class="flex justify-end">
                                     <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm">
                                         Add Comment
@@ -181,8 +187,18 @@
                                                 </span>
                                             </div>
                                             <div class="text-sm text-gray-700">
-                                                {!! nl2br(e($comment->content)) !!}
+                                                {!! nl2br($comment->content) !!}
                                             </div>
+                                            @if($comment->mentioned_users && count($comment->mentioned_users) > 0)
+                                                <div class="text-xs text-gray-500 mt-2">
+                                                    <span class="inline-flex items-center">
+                                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                                        </svg>
+                                                        Mentioned {{ count($comment->mentioned_users) }} {{ count($comment->mentioned_users) === 1 ? 'person' : 'people' }}
+                                                    </span>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

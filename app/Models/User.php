@@ -75,4 +75,34 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Comment::class);
     }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function unreadNotifications(): HasMany
+    {
+        return $this->hasMany(Notification::class)->whereNull('read_at');
+    }
+
+    public function todoItems(): HasMany
+    {
+        return $this->hasMany(TodoItem::class);
+    }
+
+    public function taskTrackers(): HasMany
+    {
+        return $this->hasMany(TaskTracker::class, 'created_by');
+    }
+
+    public function assignedTaskTrackers(): HasMany
+    {
+        return $this->hasMany(TaskTracker::class, 'assignee_id');
+    }
+
+    public function taskTrackerPages(): HasMany
+    {
+        return $this->hasMany(TaskTrackerPage::class);
+    }
 }

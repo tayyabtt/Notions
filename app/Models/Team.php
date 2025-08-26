@@ -52,4 +52,16 @@ class Team extends Model
     {
         return $this->hasMany(TeamInvitation::class);
     }
+
+    public function taskTrackers(): HasMany
+    {
+        return $this->hasMany(TaskTracker::class);
+    }
+
+    public function members(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'team_users')
+                    ->withPivot('role')
+                    ->withTimestamps();
+    }
 }

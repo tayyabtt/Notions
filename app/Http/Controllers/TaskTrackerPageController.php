@@ -1,0 +1,73 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\TaskTrackerPage;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class TaskTrackerPageController extends Controller
+{
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'icon' => 'nullable|string|max:10',
+        ]);
+
+        $page = TaskTrackerPage::create([
+            'name' => $request->name ?: 'Untitled',
+            'description' => $request->description,
+            'icon' => $request->icon ?: '✅',
+            'user_id' => Auth::id(),
+        ]);
+
+        return redirect()->route('task-tracker-page.show', $page)
+                         ->with('success', 'Task tracker page created successfully!');
+    }
+
+    public function show(TaskTrackerPage $page)
+    {
+        $taskTrackers = $page->taskTrackers()
+            ->with(['creator'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $taskTrackerPages = Auth::user()->taskTrackerPages;
+
+        return view('task-tracker.page', compact('page', 'taskTrackers', 'taskTrackerPages'));
+    }
+
+    public function update(Request $request, TaskTrackerPage $page)
+    {
+        $validationRules = [];
+        
+        if ($request->has('name')) {
+            $validationRules['name'] = 'required|string|max:255';
+        }
+        if ($request->has('description')) {
+            $validationRules['description'] = 'nullable|string';
+        }
+        if ($request->has('icon')) {
+            $validationRules['icon'] = 'nullable|string|max:10';
+        }
+        
+        $request->validate($validationRules);
+
+        $fieldsToUpdate = $request->only(array_keys($validationRules));
+        $page->update($fieldsToUpdate);
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Page updated successfully']);
+        }
+
+        return redirect()->back()->with('success', 'Task tracker page updated successfully!');
+    }
+
+    public function destroy(TaskTrackerPage $page)
+    {
+        $page->delete();
+        return redirect()->route('task-tracker.index')->with('success', 'Task tracker page deleted successfully!');
+    }
+}

@@ -72,38 +72,67 @@ class TeamController extends Controller
         ]);
     }
 
-    public function update(CreateTeamRequest $request, Team $team): JsonResponse
+    public function update(Request $request, Team $team)
     {
+        $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'description' => 'sometimes|nullable|string',
+        ]);
+
         // Check if user is team admin
         $userRole = $team->users()->where('user_id', $request->user()->id)->first();
         
         if (!$userRole || $userRole->pivot->role !== 'admin') {
-            return response()->json(['message' => 'Access denied'], 403);
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Access denied'], 403);
+            }
+            return back()->withErrors(['error' => 'Access denied']);
         }
 
-        $team->update([
-            'name' => $request->name,
-            'description' => $request->description,
-        ]);
+        // Only update fields that are present in the request
+        $fieldsToUpdate = $request->only(['name', 'description']);
+        $team->update($fieldsToUpdate);
 
-        return response()->json([
-            'message' => 'Team updated successfully',
-            'team' => $team->fresh(['owner', 'users'])
-        ]);
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Team updated successfully',
+                'team' => $team->fresh(['owner', 'users'])
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Team updated successfully!');
     }
 
-    public function destroy(Team $team, Request $request): JsonResponse
+    public function destroy(Team $team, Request $request)
     {
         // Only team owner can delete team
         if ($team->owner_id !== $request->user()->id) {
-            return response()->json(['message' => 'Access denied'], 403);
+            return back()->withErrors(['error' => 'Access denied - only team owner can delete team']);
         }
 
-        $team->delete();
+        DB::beginTransaction();
+        
+        try {
+            // Delete all tasks in this team
+            $team->tasks()->delete();
+            
+            // Delete all tags in this team
+            $team->tags()->delete();
+            
+            // Detach all team members
+            $team->users()->detach();
+            
+            // Delete the team
+            $team->delete();
 
-        return response()->json([
-            'message' => 'Team deleted successfully'
-        ]);
+            DB::commit();
+
+            return redirect()->route('dashboard')->with('success', 'Team deleted successfully!');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Failed to delete team']);
+        }
     }
 
     public function inviteMember(InviteTeamMemberRequest $request, Team $team): JsonResponse
