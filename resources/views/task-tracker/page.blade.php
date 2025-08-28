@@ -52,10 +52,35 @@
         }
         
         .table-cell {
-            padding: 2px 1px !important;
+            padding: 2px 1px !important; /* match index.blade.php tight spacing */
             border-bottom: 1px solid #e5e5e3;
             font-size: 14px;
             color: #37352f;
+        }
+
+        /* Force tight spacing on all table cells */
+        .excel-table .table-cell {
+            padding: 2px 4px !important;
+        }
+        
+        table td.table-cell {
+            padding: 2px 4px !important;
+        }
+
+        /* Match the index.blade.php exact CSS */
+        .excel-table td {
+            background: white;
+            border: 1px solid #e2e6ea;
+            padding: 2px 4px !important; /* make this explicit to avoid overrides */
+        }
+        
+        /* Nuclear option - force tight spacing everywhere */
+        .excel-table tbody td {
+            padding: 2px 4px !important;
+        }
+        
+        .excel-table td.table-cell {
+            padding: 2px 4px !important;
         }
 
         .new-task-button {
@@ -140,41 +165,40 @@
             background: white;
             border: 1px solid #e2e6ea;
             border-radius: 3px;
-            padding: 8px;
-            min-height: 36px;
+            padding: 4px !important; /* reduced from 8px */
+            min-height: auto;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
+            gap: 8px;
         }
         
-        .excel-cell {
-            background: white;
-            border: 1px solid #e2e6ea;
-            padding: 6px 8px !important;
-            min-height: 32px;
+        /* Reduce heading and paragraph spacing inside boxes */
+        .excel-box h4,
+        .excel-box p {
+            margin: 0;
+        }
+
+        .excel-box h4 {
+            font-size: 13px;
+            line-height: 1.1;
+            margin-bottom: 2px;
+        }
+
+        /* Ensure inline labels inside boxes keep small padding */
+        .excel-box .px-2,
+        .excel-box .rounded.text-xs {
+            padding: 2px 6px !important;
+            font-size: 12px;
+        }
+
+        /* Keep editable fields compact */
+        .editable-field {
+            padding: 1px 4px !important;
+            min-height: 18px;
+            line-height: 1.2;
         }
         
-        .excel-table th {
-            background: white;
-            border-left: 1px solid #e2e6ea;
-            border-right: 1px solid #e2e6ea;
-            border-bottom: 1px solid #e2e6ea;
-            padding: 8px;
-        }
-        
-        .excel-table th:first-child {
-            border-left: 1px solid #e2e6ea;
-        }
-        
-        .excel-table th:last-child {
-            border-right: 1px solid #e2e6ea;
-        }
-        
-        .excel-table td {
-            background: white;
-            border: 1px solid #e2e6ea;
-            padding: 2px 4px;
-        }
-        
+        /* table collapse to avoid browser default spacing surprises */
         .excel-table {
             border-collapse: collapse;
         }
@@ -249,54 +273,27 @@
                     </div>
                     
                     <div class="space-y-1">
-                        <a href="{{ route('todo.index') }}" class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text">
-                            <span class="text-base">📋</span>
-                            <span>To Do List</span>
-                        </a>
+                        <div class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text">
+                            <a href="{{ route('todo.index') }}" class="flex items-center space-x-2">
+                                <span class="text-base">📋</span>
+                            </a>
+                            <span id="todo-list-text" class="editable-text cursor-pointer" onclick="makeEditable(this, 'todo-list')" title="Click to edit">
+                                To Do List
+                            </span>
+                        </div>
                         <div class="flex items-center justify-between px-2 py-1 rounded notion-hover group">
                             <a href="{{ route('task-tracker.index') }}" class="flex items-center space-x-2 flex-1 text-sm notion-text">
                                 <span class="text-base">✅</span>
                                 <span>Tasks Trackers</span>
                             </a>
-                            <details>
-                                <summary class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 p-1 cursor-pointer list-none">
+                            <form action="{{ route('task-tracker-page.quick-store') }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 p-1">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                                     </svg>
-                                </summary>
-                                <div class="absolute left-4 mt-2 bg-white border notion-border rounded-lg shadow-lg p-4 z-20 w-96">
-                                    <form action="{{ route('task-tracker-page.store') }}" method="POST" class="space-y-4">
-                                        @csrf
-                                        
-                                        <!-- Page name -->
-                                        <div>
-                                            <label class="block text-sm font-medium notion-text mb-2">Page name</label>
-                                            <input type="text" name="name" placeholder="Enter page name" required
-                                                   class="w-full px-3 py-2 border notion-border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                                        </div>
-                                        
-                                        <!-- Icon -->
-                                        <div>
-                                            <label class="block text-sm font-medium notion-text mb-2">Icon</label>
-                                            <input type="text" name="icon" value="✅" placeholder="Enter icon"
-                                                   class="w-full px-3 py-2 border notion-border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                                        </div>
-                                        
-                                        <!-- Description -->
-                                        <div>
-                                            <label class="block text-sm font-medium notion-text mb-2">Description</label>
-                                            <textarea name="description" rows="2" placeholder="Add a description..."
-                                                      class="w-full px-3 py-2 border notion-border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"></textarea>
-                                        </div>
-                                        
-                                        <div class="flex justify-end">
-                                            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
-                                                Create Page
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </details>
+                                </button>
+                            </form>
                         </div>
                         
                         <!-- Task Tracker Pages -->
@@ -725,16 +722,34 @@
                                     <span class="text-sm">Effort level</span>
                                 </div>
                             </th>
+                            <th class="text-left font-normal w-16">
+                                <div class="flex items-center space-x-1">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                    <span class="text-sm">Actions</span>
+                                </div>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($taskTrackers as $task)
-                            <tr class="hover:bg-gray-100">
+                            <tr class="hover:bg-gray-50">
                                 <!-- Task name -->
-                                <td class="font-normal">
+                                <td class="table-cell font-normal group relative">
+                                    <!-- Hidden Open button that appears on hover of name field -->
+                                    <div class="absolute right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                        <a href="#task-panel-{{ $task->id }}" data-target="#task-panel-{{ $task->id }}" class="open-panel px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 rounded border cursor-pointer">
+                                             Open
+                                        </a>
+                                    </div>
+                                    
                                     <details class="relative">
                                         <summary class="editable-field text-left w-full cursor-pointer list-none">
                                             {{ $task->name }}
+                                            @if($task->comment || $task->comment_file_name)
+                                                <span class="message-emoji ml-2 cursor-pointer hover:bg-gray-100 px-1 rounded" onclick="showComment({{ $task->id }}, '{{ addslashes($task->comment) }}', '{{ addslashes($task->comment_file_name) }}', '{{ $task->comment_file_path }}')" title="View comment">💬</span>
+                                            @endif
                                         </summary>
                                         <div class="absolute z-10 mt-1 bg-white border notion-border rounded-lg shadow-lg p-3 min-w-64">
                                             <form action="{{ route('task-tracker.update', $task) }}" method="POST">
@@ -751,7 +766,7 @@
                                     </details>
                                 </td>
                                 <!-- Status -->
-                                <td>
+                                <td class="table-cell">
                                     <details class="relative">
                                         <summary class="editable-field text-left w-full cursor-pointer list-none">
                                             @if($task->status === 'not_started')
@@ -789,7 +804,7 @@
                                     </details>
                                 </td>
                                 <!-- Assignee -->
-                                <td>
+                                <td class="table-cell">
                                     <details class="relative">
                                         <summary class="editable-field text-left w-full cursor-pointer list-none text-sm">
                                             {{ $task->assignee ?: 'Unassigned' }}
@@ -809,7 +824,7 @@
                                     </details>
                                 </td>
                                 <!-- Due date -->
-                                <td>
+                                <td class="table-cell">
                                     <details class="relative">
                                         <summary class="editable-field text-left w-full cursor-pointer list-none">
                                             {{ $task->due_date ? $task->due_date->format('m/d/Y') : '' }}
@@ -829,7 +844,7 @@
                                     </details>
                                 </td>
                                 <!-- Priority -->
-                                <td>
+                                <td class="table-cell">
                                     <details class="relative">
                                         <summary class="editable-field text-left w-full cursor-pointer list-none">
                                             <span class="px-2 py-1 rounded text-xs font-medium priority-{{ $task->priority }}">
@@ -854,7 +869,7 @@
                                     </details>
                                 </td>
                                 <!-- Task type -->
-                                <td>
+                                <td class="table-cell">
                                     <details class="relative">
                                         <summary class="editable-field text-left w-full cursor-pointer list-none">
                                             <span class="px-2 py-1 rounded text-xs font-medium task-type-{{ $task->task_type }}">
@@ -881,10 +896,10 @@
                                     </details>
                                 </td>
                                 <!-- Description -->
-                                <td>
+                                <td class="table-cell">
                                     <details class="relative">
                                         <summary class="editable-field text-left w-full cursor-pointer list-none text-sm">
-                                            {{ $task->description ?: 'No description' }}
+                                            {{ $task->description ?: 'No description' }} 💬
                                         </summary>
                                         <div class="absolute z-10 mt-1 bg-white border notion-border rounded-lg shadow-lg p-3 min-w-64">
                                             <form action="{{ route('task-tracker.update', $task) }}" method="POST">
@@ -901,7 +916,7 @@
                                     </details>
                                 </td>
                                 <!-- Effort level -->
-                                <td>
+                                <td class="table-cell">
                                     <details class="relative">
                                         <summary class="editable-field text-left w-full cursor-pointer list-none">
                                             <span class="px-2 py-1 rounded text-xs font-medium effort-{{ $task->effort_level }}">
@@ -925,10 +940,24 @@
                                         </div>
                                     </details>
                                 </td>
+                                <!-- Actions -->
+                                <td class="table-cell">
+                                    <form action="{{ route('task-tracker.destroy', $task) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-400 hover:text-red-600 p-1 rounded hover:bg-red-50"
+                                                onclick="return confirm('Delete this task?')" 
+                                                title="Delete task">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="py-8 px-1 text-center notion-gray">
+                                <td colspan="9" class="py-8 px-1 text-center notion-gray">
                                     <div class="flex flex-col items-center">
                                         <div class="text-4xl mb-4">📝</div>
                                         <p class="text-lg font-medium">No tasks yet</p>
@@ -940,7 +969,7 @@
                         
                         @if($taskTrackers->isNotEmpty())
                             <tr class="table-row">
-                                <td colspan="8">
+                                <td colspan="9">
                                     <button class="flex items-center space-x-2 text-sm notion-gray hover:notion-text py-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m-6h6m-6 0H6"/>
@@ -974,8 +1003,367 @@
         </div>
     @endif
 
+    <!-- Task Detail Side Panels for each task (Tailwind + CSS transitions) -->
+    @foreach($taskTrackers as $task)
+    <div id="task-panel-{{ $task->id }}"
+         class="fixed inset-0 z-50 pointer-events-none opacity-0 transition-opacity duration-300"
+         aria-hidden="true">
+        <!-- overlay -->
+        <div class="absolute inset-0 bg-black bg-opacity-25 transition-opacity duration-300 opacity-0"></div>
+
+        <!-- sliding panel (task-panel-inner) -->
+        <aside class="absolute right-0 top-0 h-full w-96 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 task-panel-inner"
+               role="dialog" aria-modal="true">
+            <div class="flex flex-col h-full">
+                <!-- Header Section with Task Title and Metadata -->
+                <div class="px-6 py-6 border-b notion-border">
+                    <div class="flex items-start justify-between mb-4">
+                        <!-- Large Task Title -->
+                        <input name="name" type="text" value="{{ $task->name }}" 
+                               class="text-2xl font-bold notion-text leading-tight w-full border-0 bg-transparent focus:outline-none focus:bg-gray-50 rounded px-1 py-1"
+                               style="font-size: 24px;">
+                        
+                        <!-- Close Button -->
+                        <button type="button" class="close-panel p-2 hover:bg-gray-100 rounded ml-4" aria-label="Close">
+                            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Metadata Row -->
+                    <div class="flex items-center justify-between text-sm">
+                        <!-- Assignee with Avatar -->
+                        <div class="flex items-center space-x-2">
+                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
+                                {{ substr($task->assignee ?: 'T', 0, 1) }}
+                            </span>
+                            <span class="notion-text font-medium">{{ $task->assignee ?: 'Tayyab Tahir' }}</span>
+                        </div>
+                        
+                        <div style="width: 20px;"></div>
+                        
+                        <!-- Status Badge -->
+                        <div class="flex items-center">
+                            @if($task->status === 'not_started')
+                                <span class="inline-flex items-center text-sm font-normal px-3 py-1 bg-gray-100 text-gray-700 rounded-full">
+                                    <span class="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
+                                    Not started
+                                </span>
+                            @elseif($task->status === 'in_progress')
+                                <span class="inline-flex items-center text-sm font-normal px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
+                                    <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                                    In progress
+                                </span>
+                            @else
+                                <span class="inline-flex items-center text-sm font-normal px-3 py-1 bg-green-100 text-green-700 rounded-full">
+                                    <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                                    Done
+                                </span>
+                            @endif
+                        </div>
+                        
+                        <div style="width: 20px;"></div>
+                        
+                        <!-- Due Date -->
+                        <div class="flex items-center space-x-2">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span class="notion-text">{{ $task->due_date ? $task->due_date->format('m/d/Y') : '02/03/2025' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel body with form -->
+                <form action="{{ route('task-tracker.update', $task) }}" method="post" enctype="multipart/form-data" class="flex-1 flex flex-col overflow-y-auto">
+                    @csrf
+                    <!-- Hidden inputs for sub-tasks -->
+                    <input type="hidden" name="subtask_1" id="subtask_1_input" value="{{ $task->subtask_1 ?? 'To-do' }}">
+                    <input type="hidden" name="subtask_2" id="subtask_2_input" value="{{ $task->subtask_2 ?? 'To-do' }}">
+                    <input type="hidden" name="subtask_3" id="subtask_3_input" value="{{ $task->subtask_3 ?? 'To-do' }}">
+
+                    <div class="px-6 py-0">
+                        <!-- Assignee Section -->
+                        <div class="py-4 border-b notion-border">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-700">Assignee</span>
+                                </div>
+                                <div class="flex-1 ml-4">
+                                    <input name="assignee" type="text" value="{{ $task->assignee ?: 'Tayyab Tahir' }}" placeholder="Enter assignee name"
+                                           class="w-full px-3 py-2 text-sm border-0 bg-gray-50 rounded focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status Section -->
+                        <div class="py-4 border-b notion-border">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-700">Status</span>
+                                </div>
+                                <div class="flex-1 ml-4">
+                                    <div class="relative">
+                                        <select name="status" class="w-full px-3 py-2 text-sm border-0 bg-gray-50 rounded focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 appearance-none">
+                                            <option value="not_started" {{ $task->status === 'not_started' ? 'selected' : '' }}>🔘 Not started</option>
+                                            <option value="in_progress" {{ $task->status === 'in_progress' ? 'selected' : '' }}>🔵 In progress</option>
+                                            <option value="complete" {{ $task->status === 'complete' ? 'selected' : '' }}>🟢 Done</option>
+                                        </select>
+                                        <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                            <svg class="w-4 h-4 fill-current text-gray-400" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Due Date Section -->
+                        <div class="py-4 border-b notion-border">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-700">Due date</span>
+                                </div>
+                                <div class="flex-1 ml-4">
+                                    <input name="due_date" type="date" value="{{ $task->due_date ? $task->due_date->format('Y-m-d') : '2025-03-02' }}"
+                                           class="w-full px-3 py-2 text-sm border-0 bg-gray-50 rounded focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Comments Section -->
+                        <div class="py-6">
+                            <h3 class="text-base font-semibold notion-text mb-3" style="font-size: 16px;">Comments</h3>
+                            
+                            <!-- Existing Comments Display -->
+                            @if($task->comment || $task->comment_file_name)
+                                <div class="mb-4">
+                                    <div class="flex items-start space-x-3 mb-4">
+                                        <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
+                                            T
+                                        </span>
+                                        <div class="flex-1">
+                                            <div class="flex items-baseline space-x-2 mb-1">
+                                                <span class="font-semibold notion-text">Tayyab Tahir</span>
+                                                <span class="text-xs text-gray-400">26m</span>
+                                            </div>
+                                            @if($task->comment)
+                                                <p class="notion-text text-sm">{{ $task->comment }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            <!-- Sample Comment -->
+                            <div class="mb-4">
+                                <div class="flex items-start space-x-3 mb-4">
+                                    <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
+                                        T
+                                    </span>
+                                    <div class="flex-1">
+                                        <div class="flex items-baseline space-x-2 mb-1">
+                                            <span class="font-semibold notion-text">Tayyab Tahir</span>
+                                            <span class="text-xs text-gray-400">26m</span>
+                                        </div>
+                                        <p class="notion-text text-sm">great</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="flex items-start space-x-3">
+                                    <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
+                                        T
+                                    </span>
+                                    <div class="flex-1">
+                                        <div class="flex items-baseline space-x-2 mb-1">
+                                            <span class="font-semibold notion-text">Tayyab Tahir</span>
+                                            <span class="text-xs text-gray-400">24m</span>
+                                        </div>
+                                        <p class="notion-text text-sm">b</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- New Comment Input -->
+                            <div class="flex items-start space-x-3">
+                                <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
+                                    T
+                                </span>
+                                <div class="flex-1 space-y-3">
+                                    <textarea name="comment" placeholder="Add a comment..." rows="3" class="w-full px-3 py-2 text-sm border-0 bg-gray-50 rounded focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 resize-none" style="min-height: 60px;"></textarea>
+                                    
+                                    <!-- File Upload Section -->
+                                    <div class="flex items-center space-x-3">
+                                        <label for="comment_file_{{ $task->id }}" class="cursor-pointer flex items-center space-x-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm text-gray-700">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                                            </svg>
+                                            <span>Attach File</span>
+                                        </label>
+                                        <input type="file" id="comment_file_{{ $task->id }}" name="comment_file" class="hidden" accept="*/*" onchange="showFileName(this)">
+                                        <span id="file_name_{{ $task->id }}" class="text-xs text-gray-500"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Task Description Section -->
+                        <div class="py-6 border-t notion-border">
+                            <h3 class="text-base font-semibold notion-text mb-2" style="font-size: 16px;">Task description</h3>
+                            <div style="margin-bottom: 8px;"></div>
+                            <textarea name="description" placeholder="Provide an overview of the task and related details." rows="3" 
+                                      class="w-full px-0 py-0 text-sm border-0 bg-transparent notion-gray focus:outline-none resize-none"
+                                      style="color: #787774;">{{ $task->description ?: 'Provide an overview of the task and related details.' }}</textarea>
+                        </div>
+
+                        <!-- Sub-tasks Section -->
+                        <div class="py-6 border-t notion-border">
+                            <h3 class="text-base font-semibold notion-text mb-3" style="font-size: 16px;">
+                                <span id="subtasks-text" class="editable-text cursor-pointer" onclick="makeEditable(this, 'subtasks')" title="Click to edit">
+                                    Sub-tasks
+                                </span>
+                            </h3>
+                            <div style="margin-bottom: 12px;"></div>
+                            
+                            <!-- Sub-task items with proper spacing -->
+                            <div class="space-y-2 pl-4">
+                                <div class="flex items-center space-x-3">
+                                    <input type="checkbox" class="w-6 h-6 border-2 border-gray-300 rounded focus:ring-blue-500">
+                                    <span id="subtask-1-{{ $task->id }}" class="text-sm notion-gray editable-text cursor-pointer" onclick="makeEditableWithSave(this, 'subtask_1', {{ $task->id }})" title="Click to edit">{{ $task->subtask_1 ?? 'To-do' }}</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <input type="checkbox" class="w-6 h-6 border-2 border-gray-300 rounded focus:ring-blue-500">
+                                    <span id="subtask-2-{{ $task->id }}" class="text-sm notion-gray editable-text cursor-pointer" onclick="makeEditableWithSave(this, 'subtask_2', {{ $task->id }})" title="Click to edit">{{ $task->subtask_2 ?? 'To-do' }}</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <input type="checkbox" class="w-6 h-6 border-2 border-gray-300 rounded focus:ring-blue-500">
+                                    <span id="subtask-3-{{ $task->id }}" class="text-sm notion-gray editable-text cursor-pointer" onclick="makeEditableWithSave(this, 'subtask_3', {{ $task->id }})" title="Click to edit">{{ $task->subtask_3 ?? 'To-do' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="px-6 py-4 border-t notion-border mt-auto">
+                        <div class="flex space-x-2">
+                            <button type="submit" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save changes</button>
+                            <button type="button" class="px-4 py-2 border notion-border rounded hover:bg-gray-50 close-panel">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </aside>
+    </div>
+    @endforeach
+
+    <!-- Comment Modal -->
+    <div id="commentModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Task Comment</h3>
+                <button onclick="hideComment()" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Comment Text -->
+            <div id="commentTextSection" class="bg-gray-50 rounded p-4 mb-4">
+                <p id="commentText" class="text-gray-800"></p>
+            </div>
+            
+            <!-- Attached File -->
+            <div id="attachedFileSection" class="hidden bg-blue-50 rounded p-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <div>
+                            <p id="fileName" class="font-medium text-gray-800"></p>
+                            <p class="text-sm text-gray-600">Attached File</p>
+                        </div>
+                    </div>
+                    <button id="downloadBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+                        Download
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 <script>
+// Show comment modal
+function showComment(taskId, comment, fileName, filePath) {
+    // Show/hide comment section
+    if (comment && comment.trim() !== '') {
+        document.getElementById('commentText').textContent = comment;
+        document.getElementById('commentTextSection').classList.remove('hidden');
+    } else {
+        document.getElementById('commentTextSection').classList.add('hidden');
+    }
+    
+    // Show/hide file section
+    if (fileName && fileName.trim() !== '') {
+        document.getElementById('fileName').textContent = fileName;
+        document.getElementById('downloadBtn').onclick = () => downloadFile(filePath, fileName);
+        document.getElementById('attachedFileSection').classList.remove('hidden');
+    } else {
+        document.getElementById('attachedFileSection').classList.add('hidden');
+    }
+    
+    document.getElementById('commentModal').classList.remove('hidden');
+}
+
+// Download file function
+function downloadFile(filePath, fileName) {
+    const link = document.createElement('a');
+    link.href = '/storage/' + filePath;
+    link.download = fileName;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Show selected file name
+function showFileName(input) {
+    const fileNameSpan = document.getElementById('file_name_' + input.id.split('_').pop());
+    if (input.files && input.files[0]) {
+        fileNameSpan.textContent = input.files[0].name;
+        fileNameSpan.classList.add('text-blue-600');
+    } else {
+        fileNameSpan.textContent = '';
+        fileNameSpan.classList.remove('text-blue-600');
+    }
+}
+
+// Hide comment modal
+function hideComment() {
+    document.getElementById('commentModal').classList.add('hidden');
+}
+
+// Close modal when clicking outside
+document.getElementById('commentModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideComment();
+    }
+});
+
 // Load saved name from localStorage on page load
 document.addEventListener('DOMContentLoaded', function() {
     const pageKey = 'taskTrackerHeaderName_page_{{ $page->id }}';
@@ -988,19 +1376,256 @@ document.addEventListener('DOMContentLoaded', function() {
 function openNameEdit() {
     const pageKey = 'taskTrackerHeaderName_page_{{ $page->id }}';
     const currentName = document.getElementById('displayName').textContent;
-    const newName = prompt('Enter name:', currentName);
-    if (newName && newName.trim()) {
-        document.getElementById('displayName').textContent = newName.trim();
+    const newName = prompt('Enter new name for the page:', currentName);
+    if (newName !== null && newName.trim() !== '') {
+        // Save the new name to localStorage
         localStorage.setItem(pageKey, newName.trim());
+
+        // Update the displayed name
+        document.getElementById('displayName').textContent = newName.trim();
+
+        // Optionally, you can also send an AJAX request to update the name on the server
+        // For example, using fetch API:
+        /*
+        fetch('{{ route("task-tracker-page.update", $page) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ name: newName.trim() })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Page name updated successfully.');
+            } else {
+                console.error('Error updating page name:', data.error);
+            }
+        })
+        .catch(error => console.error('AJAX error:', error));
+        */
     }
 }
 
-function saveNameEdit() {
-    // This function is no longer used but kept for compatibility
+// This function is no longer used but kept for compatibility
+function cancelNameEdit() {
+    // Do nothing
 }
 
-function cancelNameEdit() {
-    // This function is no longer used but kept for compatibility
+document.addEventListener('DOMContentLoaded', function () {
+    // select all panel wrappers
+    const panels = document.querySelectorAll('[id^="task-panel-"]');
+
+    // helper to open a panel element (wrapper DOM node)
+    function openPanel(wrapper) {
+        if (!wrapper) return;
+        const overlay = wrapper.querySelector('.absolute.inset-0') || wrapper.firstElementChild;
+        const inner = wrapper.querySelector('.task-panel-inner');
+
+        // enable pointer events + fade wrapper in
+        wrapper.classList.remove('pointer-events-none','opacity-0');
+        wrapper.classList.add('pointer-events-auto','opacity-100');
+        wrapper.setAttribute('aria-hidden', 'false');
+
+        // overlay fade
+        if (overlay) overlay.classList.remove('opacity-0'); overlay?.classList?.add?.('opacity-100');
+
+        // slide panel in
+        if (inner) {
+            inner.classList.remove('translate-x-full');
+            inner.classList.add('translate-x-0');
+            inner.setAttribute('tabindex', '-1');
+            inner.focus({ preventScroll: true });
+        }
+    }
+
+    // helper to close a panel wrapper
+    function closePanel(wrapper) {
+        if (!wrapper) return;
+        const overlay = wrapper.querySelector('.absolute.inset-0') || wrapper.firstElementChild;
+        const inner = wrapper.querySelector('.task-panel-inner');
+
+        // slide out
+        if (inner) {
+            inner.classList.remove('translate-x-0');
+            inner.classList.add('translate-x-full');
+        }
+
+        // overlay fade out
+        if (overlay) overlay.classList.remove('opacity-100'); overlay?.classList?.add?.('opacity-0');
+
+        // hide wrapper after transition (use timeout matching duration-300 = 300ms)
+        setTimeout(() => {
+            wrapper.classList.add('pointer-events-none','opacity-0');
+            wrapper.classList.remove('pointer-events-auto','opacity-100');
+            wrapper.setAttribute('aria-hidden', 'true');
+        }, 300);
+    }
+
+    // open/close by hash (anchors like href="#task-panel-<id>")
+    function updateFromHash() {
+        const targetId = location.hash ? location.hash.slice(1) : '';
+        panels.forEach(wrapper => {
+            if (wrapper.id === targetId) openPanel(wrapper);
+            else closePanel(wrapper);
+        });
+    }
+
+    // intercept anchor clicks and pushState to avoid jump
+    document.querySelectorAll('a[href^="#task-panel-"]').forEach(a => {
+        a.addEventListener('click', function (e) {
+            e.preventDefault();
+            const href = this.getAttribute('href');
+            history.pushState(null, '', href);
+            updateFromHash();
+        });
+    });
+
+    // also allow buttons (e.g., from your table) with data-target="#task-panel-<id>"
+    document.querySelectorAll('[data-target^="#task-panel-"]').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const tgt = this.dataset.target.slice(1); // remove leading #
+            history.pushState(null, '', '#' + tgt);
+            updateFromHash();
+        });
+    });
+
+    // wire close buttons and overlay clicks
+    panels.forEach(wrapper => {
+        const overlay = wrapper.querySelector('.absolute.inset-0') || wrapper.firstElementChild;
+        const closeBtns = wrapper.querySelectorAll('.close-panel');
+        if (overlay) overlay.addEventListener('click', function () {
+            history.pushState(null, '', location.pathname + location.search);
+            updateFromHash();
+        });
+        closeBtns.forEach(cb => cb.addEventListener('click', function () {
+            history.pushState(null, '', location.pathname + location.search);
+            updateFromHash();
+        }));
+    });
+
+    // respond to back/forward and initial load
+    window.addEventListener('popstate', updateFromHash);
+    updateFromHash();
+});
+
+// Function to make text editable inline
+function makeEditable(element, identifier) {
+    const currentText = element.textContent.trim();
+    
+    // Create input element
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentText;
+    input.className = 'px-1 py-0 border notion-border rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-white';
+    input.style.width = 'auto';
+    input.style.minWidth = '100px';
+    
+    // Replace the span with input
+    element.parentNode.replaceChild(input, element);
+    input.focus();
+    input.select();
+    
+    // Handle saving on Enter or blur
+    function saveText() {
+        const newText = input.value.trim();
+        if (newText && newText !== currentText) {
+            // Create a new span with the updated text
+            const newSpan = document.createElement('span');
+            newSpan.id = element.id;
+            newSpan.className = element.className;
+            newSpan.onclick = element.onclick;
+            newSpan.title = element.title;
+            newSpan.textContent = newText;
+            
+            input.parentNode.replaceChild(newSpan, input);
+            
+            // Here you could add AJAX call to save to server if needed
+            // For now, it just updates the display
+        } else {
+            // Restore original element if no change or empty
+            input.parentNode.replaceChild(element, input);
+        }
+    }
+    
+    // Save on Enter key
+    input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            saveText();
+        }
+    });
+    
+    // Save on blur (clicking outside)
+    input.addEventListener('blur', saveText);
+    
+    // Cancel on Escape
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            input.parentNode.replaceChild(element, input);
+        }
+    });
+}
+
+// Function to make text editable with form integration for saving
+function makeEditableWithSave(element, fieldName, taskId) {
+    const currentText = element.textContent.trim();
+    
+    // Create input element
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentText;
+    input.className = 'px-1 py-0 border notion-border rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-white';
+    input.style.width = 'auto';
+    input.style.minWidth = '100px';
+    
+    // Replace the span with input
+    element.parentNode.replaceChild(input, element);
+    input.focus();
+    input.select();
+    
+    // Handle saving on Enter or blur
+    function saveText() {
+        const newText = input.value.trim();
+        if (newText && newText !== currentText) {
+            // Update the hidden form input
+            const hiddenInput = document.getElementById(fieldName + '_input');
+            if (hiddenInput) {
+                hiddenInput.value = newText;
+            }
+            
+            // Create a new span with the updated text
+            const newSpan = document.createElement('span');
+            newSpan.id = element.id;
+            newSpan.className = element.className;
+            newSpan.onclick = function() { makeEditableWithSave(newSpan, fieldName, taskId); };
+            newSpan.title = element.title;
+            newSpan.textContent = newText;
+            
+            input.parentNode.replaceChild(newSpan, input);
+        } else {
+            // Restore original element if no change or empty
+            input.parentNode.replaceChild(element, input);
+        }
+    }
+    
+    // Save on Enter key
+    input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            saveText();
+        }
+    });
+    
+    // Save on blur (clicking outside)
+    input.addEventListener('blur', saveText);
+    
+    // Cancel on Escape
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            input.parentNode.replaceChild(element, input);
+        }
+    });
 }
 </script>
 

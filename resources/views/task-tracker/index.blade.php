@@ -68,12 +68,6 @@
             align-items: center;
         }
         
-        .excel-cell {
-            background: white;
-            border: 1px solid #e2e6ea;
-            padding: 6px 8px !important;
-            min-height: 32px;
-        }
         
         .excel-table th {
             background: white;
@@ -313,45 +307,14 @@
                                 <span class="text-base">✅</span>
                                 <span>Tasks Trackers</span>
                             </a>
-                            <details>
-                                <summary class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 p-1 cursor-pointer list-none">
+                            <form action="{{ route('task-tracker-page.quick-store') }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 p-1">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                                     </svg>
-                                </summary>
-                                <div class="absolute left-4 mt-2 bg-white border notion-border rounded-lg shadow-lg p-4 z-20 w-96">
-                                    <form action="{{ route('task-tracker-page.store') }}" method="POST" class="space-y-4">
-                                        @csrf
-                                        
-                                        <!-- Page name -->
-                                        <div>
-                                            <label class="block text-sm font-medium notion-text mb-2">Page name</label>
-                                            <input type="text" name="name" placeholder="Enter page name" required
-                                                   class="w-full px-3 py-2 border notion-border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                                        </div>
-                                        
-                                        <!-- Icon -->
-                                        <div>
-                                            <label class="block text-sm font-medium notion-text mb-2">Icon</label>
-                                            <input type="text" name="icon" value="✅" placeholder="Enter icon"
-                                                   class="w-full px-3 py-2 border notion-border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                                        </div>
-                                        
-                                        <!-- Description -->
-                                        <div>
-                                            <label class="block text-sm font-medium notion-text mb-2">Description</label>
-                                            <textarea name="description" rows="2" placeholder="Add a description..."
-                                                      class="w-full px-3 py-2 border notion-border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"></textarea>
-                                        </div>
-                                        
-                                        <div class="flex justify-end">
-                                            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
-                                                Create Page
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </details>
+                                </button>
+                            </form>
                         </div>
                         
                         <!-- Task Tracker Pages -->
@@ -787,13 +750,21 @@
                                         <span class="text-sm">Effort level</span>
                                     </div>
                                 </th>
+                                <th class="text-left font-normal w-16">
+                                    <div class="flex items-center space-x-1">
+                                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                        <span class="text-sm">Actions</span>
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
                         @forelse($taskTrackers as $task)
                             <tr class="hover:bg-gray-100">
                                 <!-- Task name -->
-                                <td class="font-normal">
+                                <td class="table-cell font-normal">
                                     <details class="relative">
                                         <summary class="editable-field text-left w-full cursor-pointer list-none">
                                             {{ $task->name }}
@@ -813,7 +784,7 @@
                                     </details>
                                 </td>
                                 <!-- Status -->
-                                <td>
+                                <td class="table-cell">
                                     <details class="relative">
                                         <summary class="editable-field text-left w-full cursor-pointer list-none">
                                             @if($task->status === 'not_started')
@@ -851,7 +822,7 @@
                                     </details>
                                 </td>
                                 <!-- Assignee -->
-                                <td>
+                                <td class="table-cell">
                                     <details class="relative">
                                         <summary class="editable-field text-left w-full cursor-pointer list-none text-sm">
                                             {{ $task->assignee ?: 'Unassigned' }}
@@ -871,7 +842,7 @@
                                     </details>
                                 </td>
                                 <!-- Due date -->
-                                <td>
+                                <td class="table-cell">
                                     <details class="relative">
                                         <summary class="editable-field text-left w-full cursor-pointer list-none">
                                             {{ $task->due_date ? $task->due_date->format('m/d/Y') : '' }}
@@ -891,7 +862,7 @@
                                     </details>
                                 </td>
                                 <!-- Priority -->
-                                <td>
+                                <td class="table-cell">
                                     <details class="relative">
                                         <summary class="editable-field text-left w-full cursor-pointer list-none">
                                             <span class="px-2 py-1 rounded text-xs font-medium priority-{{ $task->priority }}">
@@ -916,7 +887,7 @@
                                     </details>
                                 </td>
                                 <!-- Task type -->
-                                <td>
+                                <td class="table-cell">
                                     <details class="relative">
                                         <summary class="editable-field text-left w-full cursor-pointer list-none">
                                             <span class="px-2 py-1 rounded text-xs font-medium task-type-{{ $task->task_type }}">
@@ -943,7 +914,7 @@
                                     </details>
                                 </td>
                                 <!-- Description -->
-                                <td>
+                                <td class="table-cell">
                                     <details class="relative">
                                         <summary class="editable-field text-left w-full cursor-pointer list-none text-sm">
                                             {{ $task->description ?: 'No description' }}
@@ -963,7 +934,7 @@
                                     </details>
                                 </td>
                                 <!-- Effort level -->
-                                <td>
+                                <td class="table-cell">
                                     <details class="relative">
                                         <summary class="editable-field text-left w-full cursor-pointer list-none">
                                             <span class="px-2 py-1 rounded text-xs font-medium effort-{{ $task->effort_level }}">
@@ -987,10 +958,24 @@
                                         </div>
                                     </details>
                                 </td>
+                                <!-- Actions -->
+                                <td class="table-cell">
+                                    <form action="{{ route('task-tracker.destroy', $task) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-400 hover:text-red-600 p-1 rounded hover:bg-red-50"
+                                                onclick="return confirm('Delete this task?')" 
+                                                title="Delete task">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="py-8 px-1 text-center notion-gray">
+                                <td colspan="9" class="py-8 px-1 text-center notion-gray">
                                     <div class="flex flex-col items-center">
                                         <div class="text-4xl mb-4">📝</div>
                                         <p class="text-lg font-medium">No tasks yet</p>
@@ -1002,7 +987,7 @@
                         
                         @if($taskTrackers->isNotEmpty())
                             <tr class="table-row">
-                                <td colspan="8">
+                                <td colspan="9">
                                     <button class="flex items-center space-x-2 text-sm notion-gray hover:notion-text py-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m-6h6m-6 0H6"/>

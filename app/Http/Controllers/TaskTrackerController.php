@@ -105,11 +105,39 @@ class TaskTrackerController extends Controller
         if ($request->has('effort_level')) {
             $validationRules['effort_level'] = 'required|in:small,medium,large';
         }
+        if ($request->has('comment')) {
+            $validationRules['comment'] = 'nullable|string';
+        }
+        if ($request->hasFile('comment_file')) {
+            $validationRules['comment_file'] = 'nullable|file|max:10240'; // 10MB max
+        }
+        if ($request->has('subtask_1')) {
+            $validationRules['subtask_1'] = 'nullable|string|max:255';
+        }
+        if ($request->has('subtask_2')) {
+            $validationRules['subtask_2'] = 'nullable|string|max:255';
+        }
+        if ($request->has('subtask_3')) {
+            $validationRules['subtask_3'] = 'nullable|string|max:255';
+        }
         
         $request->validate($validationRules);
 
         // Only update fields that are present in the request
         $fieldsToUpdate = $request->only(array_keys($validationRules));
+
+        // Handle file upload if present
+        if ($request->hasFile('comment_file')) {
+            $file = $request->file('comment_file');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $filePath = $file->storeAs('comment_files', $fileName, 'public');
+            
+            $fieldsToUpdate['comment_file_name'] = $file->getClientOriginalName();
+            $fieldsToUpdate['comment_file_path'] = $filePath;
+            
+            // Remove the file from fieldsToUpdate as it's not a database field
+            unset($fieldsToUpdate['comment_file']);
+        }
 
         $taskTracker->update($fieldsToUpdate);
 

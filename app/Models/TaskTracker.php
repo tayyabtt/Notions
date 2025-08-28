@@ -22,6 +22,12 @@ class TaskTracker extends Model
         'team_id',
         'page_id',
         'created_by',
+        'comment',
+        'comment_file_name',
+        'comment_file_path',
+        'subtask_1',
+        'subtask_2',
+        'subtask_3',
     ];
 
     protected $casts = [

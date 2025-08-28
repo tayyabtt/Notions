@@ -27,6 +27,63 @@ class TaskTrackerPageController extends Controller
                          ->with('success', 'Task tracker page created successfully!');
     }
 
+    public function quickStore(Request $request)
+    {
+        $page = TaskTrackerPage::create([
+            'name' => 'Tasks Trackers',
+            'description' => 'Stay organized with tasks, your way.',
+            'icon' => '✅',
+            'user_id' => Auth::id(),
+        ]);
+
+        // Create 3 default tasks
+        $defaultTasks = [
+            [
+                'name' => 'improve website copy',
+                'description' => 'Update and enhance website content for better user experience',
+                'status' => 'in_progress',
+                'assignee' => Auth::user()->name,
+                'due_date' => now()->addDays(7),
+                'priority' => 'high',
+                'task_type' => 'enhancement',
+                'effort_level' => 'medium',
+                'page_id' => $page->id,
+                'created_by' => Auth::id(),
+            ],
+            [
+                'name' => 'update help centers and faq',
+                'description' => 'Revise help center content and frequently asked questions',
+                'status' => 'in_progress',
+                'assignee' => Auth::user()->name,
+                'due_date' => now()->addDays(10),
+                'priority' => 'medium',
+                'task_type' => 'documentation',
+                'effort_level' => 'large',
+                'page_id' => $page->id,
+                'created_by' => Auth::id(),
+            ],
+            [
+                'name' => 'publish release notes',
+                'description' => 'Create and publish comprehensive release notes for latest updates',
+                'status' => 'in_progress',
+                'assignee' => Auth::user()->name,
+                'due_date' => now()->addDays(5),
+                'priority' => 'high',
+                'task_type' => 'documentation',
+                'effort_level' => 'small',
+                'page_id' => $page->id,
+                'created_by' => Auth::id(),
+            ],
+        ];
+
+        foreach ($defaultTasks as $taskData) {
+            \App\Models\TaskTracker::create($taskData);
+        }
+
+        return redirect()->route('task-tracker-page.show', $page)
+                         ->with('success', 'Task tracker page created successfully!');
+    }
+
     public function show(Request $request, TaskTrackerPage $page)
     {
         $view = $request->get('view', 'all');

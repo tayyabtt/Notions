@@ -125,6 +125,7 @@ Route::middleware('auth')->group(function () {
     
     // Task Tracker Page routes
     Route::post('/task-tracker-page', [TaskTrackerPageController::class, 'store'])->name('task-tracker-page.store');
+    Route::post('/task-tracker-page/quick', [TaskTrackerPageController::class, 'quickStore'])->name('task-tracker-page.quick-store');
     Route::get('/task-tracker-page/{page}', [TaskTrackerPageController::class, 'show'])->name('task-tracker-page.show');
     Route::post('/task-tracker-page/{page}/update', [TaskTrackerPageController::class, 'update'])->name('task-tracker-page.update');
     Route::delete('/task-tracker-page/{page}', [TaskTrackerPageController::class, 'destroy'])->name('task-tracker-page.destroy');
