@@ -27,16 +27,29 @@ class TaskTrackerPageController extends Controller
                          ->with('success', 'Task tracker page created successfully!');
     }
 
-    public function show(TaskTrackerPage $page)
+    public function show(Request $request, TaskTrackerPage $page)
     {
-        $taskTrackers = $page->taskTrackers()
+        $view = $request->get('view', 'all');
+        
+        $taskTrackersQuery = $page->taskTrackers()
             ->with(['creator'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->orderBy('created_at', 'desc');
+
+        if ($view === 'my_tasks') {
+            $taskTrackersQuery->where('assignee', Auth::user()->name)
+                             ->orWhere('creator_id', Auth::id());
+        }
+
+        $taskTrackers = $taskTrackersQuery->get();
+        
+        $groupedTasks = null;
+        if ($view === 'by_status') {
+            $groupedTasks = $taskTrackers->groupBy('status');
+        }
 
         $taskTrackerPages = Auth::user()->taskTrackerPages;
 
-        return view('task-tracker.page', compact('page', 'taskTrackers', 'taskTrackerPages'));
+        return view('task-tracker.page', compact('page', 'taskTrackers', 'taskTrackerPages', 'view', 'groupedTasks'));
     }
 
     public function update(Request $request, TaskTrackerPage $page)

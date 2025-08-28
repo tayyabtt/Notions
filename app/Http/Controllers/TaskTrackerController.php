@@ -16,22 +16,32 @@ class TaskTrackerController extends Controller
         $teams = Auth::user()->teams;
         $taskTrackerPages = Auth::user()->taskTrackerPages;
         $currentTeam = null;
+        $view = $request->get('view', 'all'); // all, my_tasks, by_status
 
         if ($request->has('team') && $request->team) {
             $currentTeam = Team::findOrFail($request->team);
-            $taskTrackers = TaskTracker::where('team_id', $currentTeam->id)
-                ->with(['creator', 'team'])
-                ->orderBy('created_at', 'desc')
-                ->get();
+            $query = TaskTracker::where('team_id', $currentTeam->id)
+                ->with(['creator', 'team']);
         } else {
             // Show all task trackers when no specific team or page is selected
-            $taskTrackers = TaskTracker::with(['creator', 'team'])
-                ->whereNull('page_id')
-                ->orderBy('created_at', 'desc')
-                ->get();
+            $query = TaskTracker::with(['creator', 'team'])
+                ->whereNull('page_id');
         }
 
-        return view('task-tracker.index', compact('teams', 'currentTeam', 'taskTrackers', 'taskTrackerPages'));
+        // Apply view filters
+        if ($view === 'my_tasks') {
+            $query->where('assignee', Auth::user()->name);
+        }
+
+        $taskTrackers = $query->orderBy('created_at', 'desc')->get();
+
+        // Group by status if requested
+        $groupedTasks = null;
+        if ($view === 'by_status') {
+            $groupedTasks = $taskTrackers->groupBy('status');
+        }
+
+        return view('task-tracker.index', compact('teams', 'currentTeam', 'taskTrackers', 'taskTrackerPages', 'view', 'groupedTasks'));
     }
 
     public function store(Request $request)
