@@ -105,4 +105,16 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(TaskTrackerPage::class);
     }
+
+    public function collaboratedPages(): BelongsToMany
+    {
+        return $this->belongsToMany(TaskTrackerPage::class, 'page_collaborators')
+                    ->withPivot('permission_level')
+                    ->withTimestamps();
+    }
+
+    public function pageCollaborations(): HasMany
+    {
+        return $this->hasMany(PageCollaborator::class);
+    }
 }

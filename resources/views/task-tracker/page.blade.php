@@ -296,8 +296,8 @@
                             </form>
                         </div>
                         
-                        <!-- Task Tracker Pages -->
-                        @foreach($taskTrackerPages as $taskPage)
+                        <!-- Owned Task Tracker Pages -->
+                        @foreach($ownedPages as $taskPage)
                             <div class="flex items-center justify-between px-2 py-1 rounded notion-hover group">
                                 <a href="{{ route('task-tracker-page.show', $taskPage) }}" 
                                    class="flex items-center space-x-2 flex-1 text-sm notion-text {{ (isset($page) && $page->id === $taskPage->id) ? 'bg-blue-50' : '' }}">
@@ -316,18 +316,99 @@
                                 </form>
                             </div>
                         @endforeach
+                        
+                        <!-- Shared Task Tracker Pages -->
+                        @if($sharedPages->count() > 0)
+                            <div class="mt-4">
+                                <div class="flex items-center space-x-2 px-2 py-1 mb-1">
+                                    <span class="text-xs font-medium notion-gray uppercase tracking-wide">Shared with me</span>
+                                </div>
+                                @foreach($sharedPages as $taskPage)
+                                    <div class="flex items-center justify-between px-2 py-1 rounded notion-hover group">
+                                        <a href="{{ route('task-tracker-page.show', $taskPage) }}" 
+                                           class="flex items-center space-x-2 flex-1 text-sm notion-text {{ (isset($page) && $page->id === $taskPage->id) ? 'bg-blue-50' : '' }}">
+                                            <span class="text-base">{{ $taskPage->icon }}</span>
+                                            <span>{{ $taskPage->name }}</span>
+                                            <span class="ml-auto text-xs text-gray-400">
+                                                {{ ucfirst($taskPage->pivot->permission_level) }}
+                                            </span>
+                                        </a>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
 
             <!-- Bottom Section -->
             <div class="mt-auto border-t notion-border p-3">
-                <div class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121L17 20zM9 12h6m-6 4h6m0-8h3.586a1 1 0 01.707.293L21 10"/>
-                    </svg>
-                    <span>Invite members</span>
-                </div>
+                <details class="relative">
+                    <summary class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text list-none">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121L17 20zM9 12h6m-6 4h6m0-8h3.586a1 1 0 01.707.293L21 10"/>
+                        </svg>
+                        <span>Invite members</span>
+                    </summary>
+                    
+                    <div class="absolute bottom-full left-2 mb-2 bg-white border notion-border rounded-lg shadow-lg p-4 z-20 w-80">
+                        <h3 class="font-semibold text-gray-900 mb-3">Invite people to {{ $page->name }}</h3>
+                        
+                        <form action="{{ route('invitations.send', $page) }}" method="POST" class="space-y-4">
+                            @csrf
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+                                <input type="email" name="email" placeholder="Enter email address" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Permission level</label>
+                                <select name="permission_level" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    <option value="view">👁️ View only</option>
+                                    <option value="edit">✏️ Can edit</option>
+                                </select>
+                            </div>
+                            
+                            <div class="flex justify-end space-x-2">
+                                <button type="button" onclick="this.closest('details').open = false" 
+                                        class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
+                                <button type="submit" class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">
+                                    Send Invite
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <!-- Current collaborators -->
+                        @if($page->collaborators->count() > 0)
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Current collaborators</h4>
+                                <div class="space-y-2">
+                                    @foreach($page->collaborators as $collaborator)
+                                        <div class="flex items-center justify-between text-sm">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs">
+                                                    {{ substr($collaborator->user->name, 0, 1) }}
+                                                </span>
+                                                <span>{{ $collaborator->user->name }}</span>
+                                                <span class="text-xs text-gray-500">{{ ucfirst($collaborator->permission_level) }}</span>
+                                            </div>
+                                            @if($page->isOwner(auth()->user()) && !$collaborator->isOwner())
+                                                <form action="{{ route('collaborators.remove', [$page, $collaborator]) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-400 hover:text-red-600 text-xs"
+                                                            onclick="return confirm('Remove this collaborator?')">Remove</button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </details>
                 
                 <form action="{{ route('logout') }}" method="POST" class="mt-2">
                     @csrf
@@ -1015,9 +1096,9 @@
         <aside class="absolute right-0 top-0 h-full w-96 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 task-panel-inner"
                role="dialog" aria-modal="true">
             <div class="flex flex-col h-full">
-                <!-- Header Section with Task Title and Metadata -->
-                <div class="px-6 py-6 border-b notion-border">
-                    <div class="flex items-start justify-between mb-4">
+                <!-- Header Section with Close Button -->
+                <div class="px-6 py-4 border-b notion-border">
+                    <div class="flex items-start justify-between">
                         <!-- Large Task Title -->
                         <input name="name" type="text" value="{{ $task->name }}" 
                                class="text-2xl font-bold notion-text leading-tight w-full border-0 bg-transparent focus:outline-none focus:bg-gray-50 rounded px-1 py-1"
@@ -1030,49 +1111,6 @@
                             </svg>
                         </button>
                     </div>
-                    
-                    <!-- Metadata Row -->
-                    <div class="flex items-center justify-between text-sm">
-                        <!-- Assignee with Avatar -->
-                        <div class="flex items-center space-x-2">
-                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
-                                {{ substr($task->assignee ?: 'T', 0, 1) }}
-                            </span>
-                            <span class="notion-text font-medium">{{ $task->assignee ?: 'Tayyab Tahir' }}</span>
-                        </div>
-                        
-                        <div style="width: 20px;"></div>
-                        
-                        <!-- Status Badge -->
-                        <div class="flex items-center">
-                            @if($task->status === 'not_started')
-                                <span class="inline-flex items-center text-sm font-normal px-3 py-1 bg-gray-100 text-gray-700 rounded-full">
-                                    <span class="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
-                                    Not started
-                                </span>
-                            @elseif($task->status === 'in_progress')
-                                <span class="inline-flex items-center text-sm font-normal px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
-                                    <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                                    In progress
-                                </span>
-                            @else
-                                <span class="inline-flex items-center text-sm font-normal px-3 py-1 bg-green-100 text-green-700 rounded-full">
-                                    <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                                    Done
-                                </span>
-                            @endif
-                        </div>
-                        
-                        <div style="width: 20px;"></div>
-                        
-                        <!-- Due Date -->
-                        <div class="flex items-center space-x-2">
-                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                            <span class="notion-text">{{ $task->due_date ? $task->due_date->format('m/d/Y') : '02/03/2025' }}</span>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Panel body with form -->
@@ -1083,132 +1121,138 @@
                     <input type="hidden" name="subtask_2" id="subtask_2_input" value="{{ $task->subtask_2 ?? 'To-do' }}">
                     <input type="hidden" name="subtask_3" id="subtask_3_input" value="{{ $task->subtask_3 ?? 'To-do' }}">
 
-                    <div class="px-6 py-0">
+                    <div class="px-6 py-6">
+                        <!-- 4px gap after title -->
+                        <div style="margin-bottom: 4px;"></div>
+                        
                         <!-- Assignee Section -->
-                        <div class="py-4 border-b notion-border">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-2">
-                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                    </svg>
-                                    <span class="text-sm font-medium text-gray-700">Assignee</span>
-                                </div>
-                                <div class="flex-1 ml-4">
-                                    <input name="assignee" type="text" value="{{ $task->assignee ?: 'Tayyab Tahir' }}" placeholder="Enter assignee name"
-                                           class="w-full px-3 py-2 text-sm border-0 bg-gray-50 rounded focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500">
-                                </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                                <span class="text-sm font-medium text-gray-700">Assignee</span>
+                            </div>
+                            <div class="flex-1 ml-4">
+                                <input name="assignee" type="text" value="{{ $task->assignee ?: 'Tayyab Tahir' }}" placeholder="Enter assignee name"
+                                       class="w-full px-3 py-2 text-sm border-0 bg-gray-50 rounded focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500">
                             </div>
                         </div>
 
+                        <!-- 3px gap -->
+                        <div style="margin-bottom: 3px;"></div>
+
                         <!-- Status Section -->
-                        <div class="py-4 border-b notion-border">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-2">
-                                    <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                    <span class="text-sm font-medium text-gray-700">Status</span>
-                                </div>
-                                <div class="flex-1 ml-4">
-                                    <div class="relative">
-                                        <select name="status" class="w-full px-3 py-2 text-sm border-0 bg-gray-50 rounded focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 appearance-none">
-                                            <option value="not_started" {{ $task->status === 'not_started' ? 'selected' : '' }}>🔘 Not started</option>
-                                            <option value="in_progress" {{ $task->status === 'in_progress' ? 'selected' : '' }}>🔵 In progress</option>
-                                            <option value="complete" {{ $task->status === 'complete' ? 'selected' : '' }}>🟢 Done</option>
-                                        </select>
-                                        <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                                            <svg class="w-4 h-4 fill-current text-gray-400" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                                            </svg>
-                                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                <span class="text-sm font-medium text-gray-700">Status</span>
+                            </div>
+                            <div class="flex-1 ml-4">
+                                <div class="relative">
+                                    <select name="status" class="w-full px-3 py-2 text-sm border-0 bg-gray-50 rounded focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 appearance-none">
+                                        <option value="not_started" {{ $task->status === 'not_started' ? 'selected' : '' }}>🔘 Not started</option>
+                                        <option value="in_progress" {{ $task->status === 'in_progress' ? 'selected' : '' }}>🔵 In progress</option>
+                                        <option value="complete" {{ $task->status === 'complete' ? 'selected' : '' }}>🟢 Done</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                        <svg class="w-4 h-4 fill-current text-gray-400" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                        </svg>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- 3px gap -->
+                        <div style="margin-bottom: 3px;"></div>
+
                         <!-- Due Date Section -->
-                        <div class="py-4 border-b notion-border">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-2">
-                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                    <span class="text-sm font-medium text-gray-700">Due date</span>
-                                </div>
-                                <div class="flex-1 ml-4">
-                                    <input name="due_date" type="date" value="{{ $task->due_date ? $task->due_date->format('Y-m-d') : '2025-03-02' }}"
-                                           class="w-full px-3 py-2 text-sm border-0 bg-gray-50 rounded focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                                </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span class="text-sm font-medium text-gray-700">Due date</span>
+                            </div>
+                            <div class="flex-1 ml-4">
+                                <input name="due_date" type="date" value="{{ $task->due_date ? $task->due_date->format('Y-m-d') : '2025-03-02' }}"
+                                       class="w-full px-3 py-2 text-sm border-0 bg-gray-50 rounded focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 cursor-pointer">
                             </div>
                         </div>
 
-                        <!-- Comments Section -->
-                        <div class="py-6">
-                            <h3 class="text-base font-semibold notion-text mb-3" style="font-size: 16px;">Comments</h3>
+                        <!-- 4px gap -->
+                        <div style="margin-bottom: 4px;"></div>
+
+                        <!-- Comments Section (smaller) -->
+                        <div>
+                            <h3 class="text-sm font-semibold notion-text mb-2">Comments</h3>
                             
                             <!-- Existing Comments Display -->
                             @if($task->comment || $task->comment_file_name)
-                                <div class="mb-4">
-                                    <div class="flex items-start space-x-3 mb-4">
-                                        <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
+                                <div class="mb-3">
+                                    <div class="flex items-start space-x-2 mb-3">
+                                        <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-medium">
                                             T
                                         </span>
                                         <div class="flex-1">
                                             <div class="flex items-baseline space-x-2 mb-1">
-                                                <span class="font-semibold notion-text">Tayyab Tahir</span>
+                                                <span class="font-semibold notion-text text-xs">Tayyab Tahir</span>
                                                 <span class="text-xs text-gray-400">26m</span>
                                             </div>
                                             @if($task->comment)
-                                                <p class="notion-text text-sm">{{ $task->comment }}</p>
+                                                <p class="notion-text text-xs">{{ $task->comment }}</p>
                                             @endif
                                         </div>
                                     </div>
                                 </div>
                             @endif
 
-                            <!-- Sample Comment -->
-                            <div class="mb-4">
-                                <div class="flex items-start space-x-3 mb-4">
-                                    <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
+                            <!-- Sample Comments -->
+                            <div class="mb-3">
+                                <div class="flex items-start space-x-2 mb-2">
+                                    <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-medium">
                                         T
                                     </span>
                                     <div class="flex-1">
                                         <div class="flex items-baseline space-x-2 mb-1">
-                                            <span class="font-semibold notion-text">Tayyab Tahir</span>
+                                            <span class="font-semibold notion-text text-xs">Tayyab Tahir</span>
                                             <span class="text-xs text-gray-400">26m</span>
                                         </div>
-                                        <p class="notion-text text-sm">great</p>
+                                        <p class="notion-text text-xs">great</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="mb-4">
-                                <div class="flex items-start space-x-3">
-                                    <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
+                            <div class="mb-3">
+                                <div class="flex items-start space-x-2">
+                                    <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-medium">
                                         T
                                     </span>
                                     <div class="flex-1">
                                         <div class="flex items-baseline space-x-2 mb-1">
-                                            <span class="font-semibold notion-text">Tayyab Tahir</span>
+                                            <span class="font-semibold notion-text text-xs">Tayyab Tahir</span>
                                             <span class="text-xs text-gray-400">24m</span>
                                         </div>
-                                        <p class="notion-text text-sm">b</p>
+                                        <p class="notion-text text-xs">b</p>
                                     </div>
                                 </div>
                             </div>
                             
                             <!-- New Comment Input -->
-                            <div class="flex items-start space-x-3">
-                                <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
+                            <div class="flex items-start space-x-2">
+                                <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-medium">
                                     T
                                 </span>
-                                <div class="flex-1 space-y-3">
-                                    <textarea name="comment" placeholder="Add a comment..." rows="3" class="w-full px-3 py-2 text-sm border-0 bg-gray-50 rounded focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 resize-none" style="min-height: 60px;"></textarea>
+                                <div class="flex-1 space-y-2">
+                                    <textarea name="comment" placeholder="Add a comment..." rows="2" class="w-full px-2 py-1 text-xs border-0 bg-gray-50 rounded focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 resize-none" style="min-height: 40px;"></textarea>
                                     
                                     <!-- File Upload Section -->
-                                    <div class="flex items-center space-x-3">
-                                        <label for="comment_file_{{ $task->id }}" class="cursor-pointer flex items-center space-x-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm text-gray-700">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div class="flex items-center space-x-2">
+                                        <label for="comment_file_{{ $task->id }}" class="cursor-pointer flex items-center space-x-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs text-gray-700">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
                                             </svg>
                                             <span>Attach File</span>
@@ -1220,23 +1264,27 @@
                             </div>
                         </div>
 
+                        <!-- 4px gap -->
+                        <div style="margin-bottom: 4px;"></div>
+
                         <!-- Task Description Section -->
-                        <div class="py-6 border-t notion-border">
+                        <div>
                             <h3 class="text-base font-semibold notion-text mb-2" style="font-size: 16px;">Task description</h3>
-                            <div style="margin-bottom: 8px;"></div>
                             <textarea name="description" placeholder="Provide an overview of the task and related details." rows="3" 
                                       class="w-full px-0 py-0 text-sm border-0 bg-transparent notion-gray focus:outline-none resize-none"
                                       style="color: #787774;">{{ $task->description ?: 'Provide an overview of the task and related details.' }}</textarea>
                         </div>
 
+                        <!-- 4px gap -->
+                        <div style="margin-bottom: 4px;"></div>
+
                         <!-- Sub-tasks Section -->
-                        <div class="py-6 border-t notion-border">
+                        <div>
                             <h3 class="text-base font-semibold notion-text mb-3" style="font-size: 16px;">
                                 <span id="subtasks-text" class="editable-text cursor-pointer" onclick="makeEditable(this, 'subtasks')" title="Click to edit">
                                     Sub-tasks
                                 </span>
                             </h3>
-                            <div style="margin-bottom: 12px;"></div>
                             
                             <!-- Sub-task items with proper spacing -->
                             <div class="space-y-2 pl-4">

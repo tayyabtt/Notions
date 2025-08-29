@@ -59,6 +59,14 @@ class TaskTrackerController extends Controller
             'page_id' => 'nullable|exists:task_tracker_pages,id',
         ]);
 
+        // Check permissions if creating task on a specific page
+        if ($request->page_id) {
+            $page = TaskTrackerPage::findOrFail($request->page_id);
+            if (!$page->canUserEdit(Auth::user())) {
+                abort(403, 'You do not have permission to create tasks on this page.');
+            }
+        }
+
         TaskTracker::create([
             'name' => $request->name,
             'description' => $request->description,
@@ -78,6 +86,14 @@ class TaskTrackerController extends Controller
 
     public function update(Request $request, TaskTracker $taskTracker)
     {
+        // Check permissions if task belongs to a specific page
+        if ($taskTracker->page_id) {
+            $page = $taskTracker->page;
+            if (!$page->canUserEdit(Auth::user())) {
+                abort(403, 'You do not have permission to edit tasks on this page.');
+            }
+        }
+
         // Build validation rules only for fields that are present
         $validationRules = [];
         
@@ -150,6 +166,14 @@ class TaskTrackerController extends Controller
 
     public function destroy(TaskTracker $taskTracker)
     {
+        // Check permissions if task belongs to a specific page
+        if ($taskTracker->page_id) {
+            $page = $taskTracker->page;
+            if (!$page->canUserEdit(Auth::user())) {
+                abort(403, 'You do not have permission to delete tasks on this page.');
+            }
+        }
+
         $taskTracker->delete();
         return redirect()->back()->with('success', 'Task tracker item deleted successfully!');
     }

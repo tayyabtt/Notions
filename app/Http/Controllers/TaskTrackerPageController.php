@@ -86,6 +86,11 @@ class TaskTrackerPageController extends Controller
 
     public function show(Request $request, TaskTrackerPage $page)
     {
+        // Check if user can access this page
+        if (!$page->canUserAccess(Auth::user())) {
+            abort(403, 'You do not have permission to access this page.');
+        }
+
         $view = $request->get('view', 'all');
         
         $taskTrackersQuery = $page->taskTrackers()
@@ -104,9 +109,15 @@ class TaskTrackerPageController extends Controller
             $groupedTasks = $taskTrackers->groupBy('status');
         }
 
-        $taskTrackerPages = Auth::user()->taskTrackerPages;
+        // Get owned and shared pages separately
+        $ownedPages = Auth::user()->taskTrackerPages;
+        $sharedPages = Auth::user()->collaboratedPages;
+        $taskTrackerPages = $ownedPages->merge($sharedPages);
 
-        return view('task-tracker.page', compact('page', 'taskTrackers', 'taskTrackerPages', 'view', 'groupedTasks'));
+        // Load page with collaborators
+        $page->load(['collaborators.user']);
+
+        return view('task-tracker.page', compact('page', 'taskTrackers', 'taskTrackerPages', 'ownedPages', 'sharedPages', 'view', 'groupedTasks'));
     }
 
     public function update(Request $request, TaskTrackerPage $page)

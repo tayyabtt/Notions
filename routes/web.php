@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\TaskTrackerController;
 use App\Http\Controllers\TaskTrackerPageController;
+use App\Http\Controllers\InvitationController;
 
 // Authentication routes
 Route::get('/', function () {
@@ -34,6 +35,9 @@ Route::post('/logout', function () {
     auth()->logout();
     return redirect('/');
 })->name('logout');
+
+// Public invitation acceptance route (no auth required)
+Route::get('/accept-invite/{token}', [InvitationController::class, 'acceptInvitation'])->name('invitations.accept');
 
 // Dashboard route
 Route::get('/dashboard', function (\Illuminate\Http\Request $request) {
@@ -129,6 +133,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/task-tracker-page/{page}', [TaskTrackerPageController::class, 'show'])->name('task-tracker-page.show');
     Route::post('/task-tracker-page/{page}/update', [TaskTrackerPageController::class, 'update'])->name('task-tracker-page.update');
     Route::delete('/task-tracker-page/{page}', [TaskTrackerPageController::class, 'destroy'])->name('task-tracker-page.destroy');
+    
+    // Invitation routes
+    Route::post('/task-tracker-page/{page}/invite', [InvitationController::class, 'sendInvitation'])->name('invitations.send');
+    Route::delete('/invitations/{invitation}/revoke', [InvitationController::class, 'revokeInvitation'])->name('invitations.revoke');
+    Route::delete('/task-tracker-page/{page}/collaborators/{collaborator}', [InvitationController::class, 'removeCollaborator'])->name('collaborators.remove');
     Route::get('/teams/{team}', function ($teamId, \Illuminate\Http\Request $request) {
         $team = auth()->user()->teams()->findOrFail($teamId);
         $teams = auth()->user()->teams;
