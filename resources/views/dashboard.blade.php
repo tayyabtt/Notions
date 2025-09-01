@@ -22,9 +22,9 @@
 <body class="bg-white text-gray-900 font-ui-sans-serif antialiased">
     <div class="flex h-screen overflow-hidden">
         <!-- Left Sidebar -->
-        <div class="notion-sidebar w-60 flex flex-col">
+        <div class="notion-sidebar w-60 flex flex-col h-full">
             <!-- Top Section -->
-            <div class="p-3">
+            <div class="p-3 flex-1 overflow-y-auto">
                 <!-- Workspace Header -->
                 <div class="flex items-center justify-between mb-1">
                     <div class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm font-medium notion-text">
@@ -65,19 +65,13 @@
                             </span>
                         @endif
                     </a>
-                </div>
-
-                <!-- Private Section -->
-                <div class="mb-4">
-                    <div class="flex items-center space-x-2 px-2 py-1 mb-1">
-                        <span class="text-xs font-medium notion-gray uppercase tracking-wide">Private</span>
-                    </div>
                     
-                    <div class="space-y-1">
-                        <div class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text">
-                            <span class="text-base">📄</span>
-                            <span>hello</span>
-                        </div>
+                    <!-- Add new button -->
+                    <div class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        <span>Add new</span>
                     </div>
                 </div>
 
@@ -109,7 +103,7 @@
                             <div class="flex items-center justify-between px-2 py-1 rounded notion-hover group">
                                 <a href="{{ route('teams.show', $team->id) }}" 
                                    class="flex items-center space-x-2 flex-1 text-sm notion-text {{ (isset($currentTeam) && $currentTeam->id === $team->id) ? 'bg-blue-50' : '' }}">
-                                    <span class="text-base">🔴</span>
+                                    <span class="text-base">🏠</span>
                                     <span>{{ $team->name }}</span>
                                 </a>
                                 <form action="{{ route('teams.destroy', $team->id) }}" method="POST" class="inline">
@@ -124,6 +118,18 @@
                                 </form>
                             </div>
                         @endforeach
+                        
+                        <!-- Goals Section -->
+                        <div class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text">
+                            <span class="text-base">📧</span>
+                            <span>Goals</span>
+                        </div>
+                        
+                        <!-- Tasks Tracker Section -->
+                        <a href="{{ route('task-tracker.index') }}" class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text">
+                            <span class="text-base">✅</span>
+                            <span>Tasks Tracker</span>
+                        </a>
                         
                         <details>
                             <summary class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-gray list-none">
@@ -144,35 +150,80 @@
                     
                     <div class="space-y-1">
                         <a href="{{ route('todo.index') }}" class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text">
-                            <span class="text-base">📋</span>
+                            <span class="text-base">📝</span>
                             <span>To Do List</span>
-                        </a>
-                        <a href="{{ route('task-tracker.index') }}" class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text">
-                            <span class="text-base">✅</span>
-                            <span>Tasks Trackers</span>
                         </a>
                     </div>
                 </div>
             </div>
 
             <!-- Bottom Section -->
-            <div class="mt-auto border-t notion-border p-3">
-                <div class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text">
+            <div class="mt-auto p-3">
+                <!-- Settings -->
+                <div class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text mb-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121L17 20zM9 12h6m-6 4h6m0-8h3.586a1 1 0 01.707.293L21 10"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
-                    <span>Invite members</span>
+                    <span>Settings</span>
                 </div>
-                
-                <form action="{{ route('logout') }}" method="POST" class="mt-2">
-                    @csrf
-                    <button type="submit" class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer w-full text-left text-sm notion-text">
+
+                <!-- Marketplace -->
+                <div class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text mb-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                    <span>Marketplace</span>
+                </div>
+
+                <!-- Trash -->
+                <a href="{{ route('trash.index') }}" class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text mb-3">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    <span>Trash</span>
+                </a>
+
+                <!-- Divider -->
+                <div class="border-t notion-border pt-3">
+                    @if(isset($currentTeam))
+                    <details>
+                        <summary class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text list-none">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121L17 20zM9 12h6m-6 4h6m0-8h3.586a1 1 0 01.707.293L21 10"/>
+                            </svg>
+                            <span>Invite members</span>
+                        </summary>
+                        <div class="mt-2 px-2">
+                            <form action="{{ route('teams.invite', $currentTeam->id) }}" method="POST" class="space-y-2">
+                                @csrf
+                                <input type="email" name="email" placeholder="Email address" required
+                                       class="w-full px-2 py-1 text-sm border notion-border rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white">
+                                <button type="submit" class="w-full px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">
+                                    Send Invitation
+                                </button>
+                            </form>
+                        </div>
+                    </details>
+                    @else
+                    <div class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text opacity-50">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121L17 20zM9 12h6m-6 4h6m0-8h3.586a1 1 0 01.707.293L21 10"/>
                         </svg>
-                        <span>Logout</span>
-                    </button>
-                </form>
+                        <span>Invite members</span>
+                    </div>
+                    @endif
+                    
+                    <form action="{{ route('logout') }}" method="POST" class="mt-2">
+                        @csrf
+                        <button type="submit" class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer w-full text-left text-sm notion-text">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
+                            <span>Logout</span>
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
 

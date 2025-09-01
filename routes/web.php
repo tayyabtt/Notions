@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\TaskTrackerController;
 use App\Http\Controllers\TaskTrackerPageController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\TrashController;
 
 // Authentication routes
 Route::get('/', function () {
@@ -114,6 +115,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/teams', [TeamController::class, 'store'])->name('teams.store');
     Route::post('/teams/{team}/update', [TeamController::class, 'update'])->name('teams.update');
     Route::delete('/teams/{team}', [TeamController::class, 'destroy'])->name('teams.destroy');
+    Route::post('/teams/{team}/invite', [TeamController::class, 'inviteMember'])->name('teams.invite');
     
     // To Do List routes
     Route::get('/todo', [App\Http\Controllers\TodoController::class, 'index'])->name('todo.index');
@@ -138,6 +140,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/task-tracker-page/{page}/invite', [InvitationController::class, 'sendInvitation'])->name('invitations.send');
     Route::delete('/invitations/{invitation}/revoke', [InvitationController::class, 'revokeInvitation'])->name('invitations.revoke');
     Route::delete('/task-tracker-page/{page}/collaborators/{collaborator}', [InvitationController::class, 'removeCollaborator'])->name('collaborators.remove');
+    
+    // Trash routes
+    Route::get('/trash', [App\Http\Controllers\TrashController::class, 'index'])->name('trash.index');
+    Route::post('/trash/{task}/restore', [App\Http\Controllers\TrashController::class, 'restore'])->withTrashed()->name('trash.restore');
+    Route::delete('/trash/{task}/force-delete', [App\Http\Controllers\TrashController::class, 'forceDelete'])->withTrashed()->name('trash.force-delete');
+    Route::delete('/trash/empty', [App\Http\Controllers\TrashController::class, 'emptyTrash'])->name('trash.empty');
     Route::get('/teams/{team}', function ($teamId, \Illuminate\Http\Request $request) {
         $team = auth()->user()->teams()->findOrFail($teamId);
         $teams = auth()->user()->teams;

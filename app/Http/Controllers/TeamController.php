@@ -135,19 +135,25 @@ class TeamController extends Controller
         }
     }
 
-    public function inviteMember(InviteTeamMemberRequest $request, Team $team): JsonResponse
+    public function inviteMember(Request $request, Team $team)
     {
-        // Check if user is team admin
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        // Check if user is team owner or admin
         $userRole = $team->users()->where('user_id', $request->user()->id)->first();
         
-        if (!$userRole || $userRole->pivot->role !== 'admin') {
-            return response()->json(['message' => 'Access denied'], 403);
+        if (!$userRole || !in_array($userRole->pivot->role, ['admin', 'owner'])) {
+            if ($team->owner_id !== $request->user()->id) {
+                return back()->withErrors(['error' => 'Access denied. Only team owners/admins can invite members.']);
+            }
         }
 
         // Check if user is already a team member
         $existingUser = User::where('email', $request->email)->first();
         if ($existingUser && $team->users()->where('user_id', $existingUser->id)->exists()) {
-            return response()->json(['message' => 'User is already a team member'], 400);
+            return back()->withErrors(['error' => 'User is already a team member']);
         }
 
         // Check for existing pending invitation
@@ -158,7 +164,7 @@ class TeamController extends Controller
             ->first();
 
         if ($existingInvitation) {
-            return response()->json(['message' => 'Invitation already sent'], 400);
+            return back()->withErrors(['error' => 'Invitation already sent to this email']);
         }
 
         // Create invitation
@@ -172,10 +178,7 @@ class TeamController extends Controller
 
         // TODO: Send email invitation (we'll implement this later)
         
-        return response()->json([
-            'message' => 'Invitation sent successfully',
-            'invitation' => $invitation
-        ], 201);
+        return back()->with('success', 'Invitation sent successfully to ' . $request->email);
     }
 
     public function removeMember(Team $team, User $user, Request $request): JsonResponse
