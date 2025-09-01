@@ -7,224 +7,415 @@
     <title>{{ config('app.name', 'Notion') }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .font-ui-sans-serif { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
-        .antialiased { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        /* ---------- Sidebar: pixel-accurate styles to match screenshot ---------- */
+        :root{
+            --sb-bg: #fbfbfa;
+            --sb-divider: #ecebe9;
+            --text: #37352f;
+            --muted: #9b9a97;
+            --pill-bg: #ffffff;
+        }
+
         body { background: #ffffff; }
-        .notion-sidebar { background: #f7f7f5; border-right: 1px solid #e5e5e3; }
-        .notion-sidebar-item { color: #37352f; font-size: 14px; }
-        .notion-sidebar-item:hover { background: rgba(55, 53, 47, 0.08); }
-        .notion-gray { color: #787774; }
-        .notion-text { color: #37352f; }
-        .notion-border { border-color: #e5e5e3; }
-        .notion-hover:hover { background: rgba(55, 53, 47, 0.08); }
+
+        .notion-sidebar {
+            background: var(--sb-bg);
+            border-right: 1px solid var(--sb-divider);
+            width: 220px;               /* screenshot width */
+            min-width: 220px;
+            max-width: 220px;
+            display: flex;
+            flex-direction: column;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 14px;
+            color: var(--text);
+            height: 100vh;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /* scroll area inside sidebar */
+        .notion-sidebar .sidebar-scroll {
+            padding: 12px 10px;
+            overflow-y: auto;
+            height: 100%;
+        }
+        .notion-sidebar .sidebar-scroll::-webkit-scrollbar { width: 6px; }
+        .notion-sidebar .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+        .notion-sidebar .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(55,53,47,0.08); border-radius: 10px; }
+
+        /* Workspace header (top) */
+        .workspace-header {
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:6px 4px;
+            border-radius:6px;
+            color:var(--text);
+            font-weight:600;
+            font-size:13px;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+        }
+        .workspace-avatar {
+            width:30px;
+            height:30px;
+            border-radius:6px;
+            background:#e9e6e2;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            color:#6b6a67;
+            font-weight:700;
+        }
+        .workspace-title {
+            display:inline-block;
+            max-width:130px;
+            overflow:hidden;
+            white-space:nowrap;
+            text-overflow:ellipsis;
+            vertical-align:middle;
+        }
+        .workspace-edit {
+            margin-left:auto;
+            color:#6b6a67;
+        }
+
+        /* compact search row */
+        .sidebar-search {
+            display:flex;
+            align-items:center;
+            gap:8px;
+            padding:8px;
+            margin-top:10px;
+            background:#ffffff;
+            border:1px solid var(--sb-divider);
+            border-radius:8px;
+            color:var(--muted);
+            font-size:13px;
+        }
+
+        /* top nav items (Home/Inbox/Add new) */
+        .nav-item {
+            display:flex;
+            align-items:center;
+            gap:12px;
+            padding:8px 6px;
+            border-radius:8px;
+            color:var(--text);
+            font-size:14px;
+            margin-top:8px;
+        }
+        .nav-item .nav-icon {
+            width:28px;
+            height:28px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            border-radius:6px;
+            color:#6b6a67;
+            background:transparent;
+            flex-shrink:0;
+        }
+        .nav-item:hover { background: rgba(55,53,47,0.04); cursor:pointer; }
+
+        /* Section title (Teamspaces / Shared) */
+        .sidebar-section-title {
+            font-size:12px;
+            color:var(--muted);
+            margin-top:16px;
+            margin-bottom:8px;
+            padding:0 4px;
+        }
+
+        /* Teamspace item */
+        .teamspace-item {
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:8px 6px;
+            border-radius:8px;
+            font-size:14px;
+            color:var(--text);
+        }
+        .teamspace-item .ts-icon {
+            width:28px;
+            height:28px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            border-radius:6px;
+            flex-shrink:0;
+        }
+        .ts-workspace { background:#FCEAD6; color:#C76A2B; }    /* orange tile */
+        .ts-goals { background:#E6F2FF; color:#0074E4; }        /* blue tile */
+        .ts-tasks { background:#E8F8EE; color:#00B34A; border-radius:50%; } /* green circle */
+
+        .teamspace-item:hover { background: rgba(55,53,47,0.04); cursor:pointer; }
+
+        /* Selected/shared pill (To Do List) */
+        .shared-pill {
+            display:flex;
+            align-items:center;
+            gap:12px;
+            padding:8px 10px;
+            margin-top:6px;
+            border-radius:8px;
+            background: var(--pill-bg);
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.03);
+            font-weight:600;
+        }
+        .shared-pill .pill-icon {
+            width:28px;
+            height:28px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            border-radius:6px;
+            color:#117A4D;
+            background:transparent;
+            flex-shrink:0;
+        }
+
+        /* Footer items */
+        .sidebar-footer {
+            padding:12px 10px;
+            border-top:1px solid var(--sb-divider);
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+        }
+        .footer-item {
+            display:flex;
+            align-items:center;
+            gap:12px;
+            padding:8px 6px;
+            border-radius:8px;
+            color:var(--text);
+        }
+        .footer-item .fi-icon { width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center; color:#6b6a67; }
+
+        /* small utility tweaks */
+        .muted { color:var(--muted); font-size:13px; }
+        .ml-auto { margin-left:auto; }
+        a { text-decoration:none; color:inherit; }
     </style>
 </head>
 <body class="bg-white text-gray-900 font-ui-sans-serif antialiased">
     <div class="flex h-screen overflow-hidden">
         <!-- Left Sidebar -->
-        <div class="notion-sidebar w-60 flex flex-col h-full">
-            <!-- Top Section -->
-            <div class="p-3 flex-1 overflow-y-auto">
-                <!-- Workspace Header -->
-                <div class="flex items-center justify-between mb-1">
-                    <div class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm font-medium notion-text">
-                        <span class="text-base">👤</span>
-                        <span>{{ auth()->user()->name }}'s Workspace</span>
-                        <svg class="w-3 h-3 ml-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        <div class="notion-sidebar">
+            <div class="sidebar-scroll">
+                {{-- Ensure variables exist when controller doesn't provide them --}}
+                @php
+                    $ownedPages  = $ownedPages  ?? collect();
+                    $sharedPages = $sharedPages ?? collect();
+                    $page        = $page ?? null;
+                @endphp
+
+                <!-- Workspace header -->
+                <div class="workspace-header">
+                    <div class="workspace-avatar">T</div>
+                    <div class="workspace-title">{{ auth()->user()->name }}'s Workspace</div>
+                    <div class="workspace-edit" title="Edit workspace">
+                        <!-- pencil icon -->
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b6a67" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden>
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
                         </svg>
                     </div>
                 </div>
 
-                <!-- Search -->
-                <div class="px-2 py-1 mb-2">
-                    <div class="flex items-center space-x-2 px-2 py-1 bg-white border notion-border rounded cursor-pointer hover:shadow-sm transition-shadow text-sm notion-gray">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                        <span>Search or ask a question in {{ auth()->user()->name }}'s Workspace...</span>
-                    </div>
-                </div>
-
-                <!-- Navigation -->
-                <div class="space-y-1 mb-4">
-                    <a href="{{ route('dashboard') }}" class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                        </svg>
-                        <span>Home</span>
-                    </a>
-                    <a href="{{ route('notifications.index') }}" class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a6 6 0 00-12 0v7m12 0v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7m12 0H8"/>
-                        </svg>
-                        <span>Inbox</span>
-                        @if(auth()->user()->unreadNotifications()->count() > 0)
-                            <span class="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                                {{ auth()->user()->unreadNotifications()->count() }}
-                            </span>
-                        @endif
-                    </a>
-                    
-                    <!-- Add new button -->
-                    <div class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                        </svg>
-                        <span>Add new</span>
-                    </div>
-                </div>
-
-                <!-- Teamspaces Section -->
-                <div class="mb-4">
-                    <div class="flex items-center justify-between px-2 py-1 mb-1">
-                        <span class="text-xs font-medium notion-gray uppercase tracking-wide">Teamspaces</span>
-                        <details>
-                            <summary class="w-4 h-4 notion-gray hover:text-gray-600 cursor-pointer list-none">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                </svg>
-                            </summary>
-                            <div class="mt-2 px-2">
-                                <form action="{{ route('teams.store') }}" method="POST" class="space-y-2">
-                                    @csrf
-                                    <input type="text" name="name" placeholder="Team name" required
-                                           class="w-full px-2 py-1 text-sm border notion-border rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white">
-                                    <button type="submit" class="w-full px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">
-                                        Create
-                                    </button>
-                                </form>
-                            </div>
-                        </details>
-                    </div>
-                    
-                    <div class="space-y-1">
-                        @foreach($teams as $team)
-                            <div class="flex items-center justify-between px-2 py-1 rounded notion-hover group">
-                                <a href="{{ route('teams.show', $team->id) }}" 
-                                   class="flex items-center space-x-2 flex-1 text-sm notion-text {{ (isset($currentTeam) && $currentTeam->id === $team->id) ? 'bg-blue-50' : '' }}">
-                                    <span class="text-base">🏠</span>
-                                    <span>{{ $team->name }}</span>
-                                </a>
-                                <form action="{{ route('teams.destroy', $team->id) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 p-1"
-                                            onclick="return confirm('Delete team {{ $team->name }}? This will also delete all tasks in this team.')">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                        </svg>
-                                    </button>
-                                </form>
-                            </div>
-                        @endforeach
-                        
-                        <!-- Goals Section -->
-                        <div class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text">
-                            <span class="text-base">📧</span>
-                            <span>Goals</span>
+                <!-- Search icon / expandable search -->
+                <div style="margin-top:8px;">
+                    <div id="searchIconRow" class="nav-item" style="padding:6px 8px;cursor:pointer;" onclick="openSidebarSearch()">
+                        <div class="nav-icon" aria-hidden>
+                            <svg id="searchIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6a67" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="7"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
                         </div>
-                        
-                        <!-- Tasks Tracker Section -->
-                        <a href="{{ route('task-tracker.index') }}" class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text">
-                            <span class="text-base">✅</span>
-                            <span>Tasks Tracker</span>
-                        </a>
-                        
-                        <details>
-                            <summary class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-gray list-none">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                </svg>
-                                <span>Add new</span>
-                            </summary>
-                        </details>
+                        <div class="muted">Search</div>
+                    </div>
+
+                    <div id="searchExpand" class="hidden" style="margin-top:8px;">
+                        <input id="sidebarSearchInput" type="text" placeholder="Search" aria-label="Search"
+                               style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--sb-divider);box-sizing:border-box;font-size:13px;">
                     </div>
                 </div>
 
-                <!-- Shared Section -->
-                <div class="mb-4">
-                    <div class="flex items-center space-x-2 px-2 py-1 mb-1">
-                        <span class="text-xs font-medium notion-gray uppercase tracking-wide">Shared</span>
+                <!-- Top nav (Home / Inbox / Add new) -->
+                <div class="nav-item" style="margin-top:12px;">
+                    <div class="nav-icon" aria-hidden>
+                        <!-- home icon outline -->
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6a67" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 11.5L12 4l9 7.5"></path>
+                            <path d="M5 21h14a1 1 0 0 0 1-1V11"></path>
+                        </svg>
                     </div>
-                    
-                    <div class="space-y-1">
-                        <a href="{{ route('todo.index') }}" class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text">
-                            <span class="text-base">📝</span>
-                            <span>To Do List</span>
-                        </a>
+                    <a href="{{ route('dashboard') }}" class="muted">Home</a>
+                </div>
+
+                <div class="nav-item">
+                    <div class="nav-icon" aria-hidden>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6a67" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6"></path>
+                            <path d="M7 8V6a5 5 0 0 1 10 0v2"></path>
+                        </svg>
                     </div>
-                </div>
-            </div>
-
-            <!-- Bottom Section -->
-            <div class="mt-auto p-3">
-                <!-- Settings -->
-                <div class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text mb-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    <span>Settings</span>
+                    <a href="{{ route('notifications.index') }}" class="muted">Inbox</a>
+                    @if(auth()->user()->unreadNotifications()->count() > 0)
+                        <span class="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">{{ auth()->user()->unreadNotifications()->count() }}</span>
+                    @endif
                 </div>
 
-                <!-- Marketplace -->
-                <div class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text mb-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-                    </svg>
-                    <span>Marketplace</span>
+                <div class="nav-item">
+                    <div class="nav-icon" aria-hidden>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6a67" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </div>
+                    <div class="muted">Add new</div>
                 </div>
 
-                <!-- Trash -->
-                <a href="{{ route('trash.index') }}" class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text mb-3">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                    <span>Trash</span>
+                <!-- Divider / Section -->
+                <div class="sidebar-section-title">Teamspaces</div>
+
+                <!-- Teamspaces list -->
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                    <a class="teamspace-item" href="#">
+                        <div class="ts-icon ts-workspace">
+                            <!-- orange house -->
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C76A2B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 11.5L12 4l9 7.5"></path>
+                                <path d="M5 21h14a1 1 0 0 0 1-1V11"></path>
+                            </svg>
+                        </div>
+                        <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->name }}'s Workspace</div>
+                    </a>
+
+                    <a class="teamspace-item" href="#">
+                        <div class="ts-icon ts-goals">
+                            <!-- goals chart -->
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0074E4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 3v18h18"></path>
+                                <path d="M7 13l4-4 4 8 4-10"></path>
+                            </svg>
+                        </div>
+                        <div class="muted">Goals</div>
+                    </a>
+
+                    <a class="teamspace-item" href="{{ route('task-tracker.index') }}">
+                        <div class="ts-icon ts-tasks" style="border-radius:6px;">
+                            <!-- green check -->
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00B34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 6L9 17l-5-5"></path>
+                            </svg>
+                        </div>
+                        <div class="muted">Tasks Tracker</div>
+                    </a>
+
+                    <a class="teamspace-item" href="#">
+                        <div class="ts-icon" style="color:#6b6a67">＋</div>
+                        <div class="muted">Add new</div>
+                    </a>
+                </div>
+
+                <!-- Shared -->
+                <div class="sidebar-section-title">Shared</div>
+
+                <a href="{{ route('todo.index') }}" class="shared-pill" style="margin-bottom:6px;">
+                    <div class="pill-icon">
+                        <!-- green list icon -->
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#117A4D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 6h13"></path>
+                            <path d="M8 12h13"></path>
+                            <path d="M8 18h13"></path>
+                            <path d="M3 6h.01"></path>
+                            <path d="M3 12h.01"></path>
+                            <path d="M3 18h.01"></path>
+                        </svg>
+                    </div>
+                    <div>To Do List</div>
                 </a>
 
-                <!-- Divider -->
-                <div class="border-t notion-border pt-3">
+                <!-- owned/shared pages compact list (keeps existing data) -->
+                <div style="margin-top:6px;">
+                    @foreach($ownedPages as $taskPage)
+                        <a href="{{ route('task-tracker-page.show', $taskPage) }}" class="teamspace-item" style="padding:6px;">
+                            <div class="ts-icon" style="background:#f1f1ef;color:#6b6a67">{{ $taskPage->icon }}</div>
+                            <div class="muted" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $taskPage->name }}</div>
+                        </a>
+                    @endforeach
+
+                    @if($sharedPages->count() > 0)
+                        <div style="margin-top:8px;">
+                            <div class="muted" style="font-size:12px;margin-bottom:6px;">Shared with me</div>
+                            @foreach($sharedPages as $taskPage)
+                                <a href="{{ route('task-tracker-page.show', $taskPage) }}" class="teamspace-item" style="padding:6px;">
+                                    <div class="ts-icon" style="background:#f8f9f7;color:#6b6a67">{{ $taskPage->icon }}</div>
+                                    <div class="muted" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $taskPage->name }}</div>
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Settings / Marketplace / Trash / Invite / Logout moved into same scroll area -->
+                <div style="margin-top:12px;border-top:1px solid var(--sb-divider);padding-top:10px;display:flex;flex-direction:column;gap:6px;">
+                    <a href="#" class="footer-item"><div class="fi-icon">⚙️</div><div class="muted">Settings</div></a>
+                    <a href="#" class="footer-item"><div class="fi-icon">🛒</div><div class="muted">Marketplace</div></a>
+                    <a href="{{ route('trash.index') }}" class="footer-item"><div class="fi-icon">🗑️</div><div class="muted">Trash</div></a>
+
+                    <div style="border-top:1px solid transparent;margin:6px 0;"></div>
+
                     @if(isset($currentTeam))
                     <details>
-                        <summary class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text list-none">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121L17 20zM9 12h6m-6 4h6m0-8h3.586a1 1 0 01.707.293L21 10"/>
-                            </svg>
-                            <span>Invite members</span>
+                        <summary class="footer-item" style="list-style:none;cursor:pointer;">
+                            <div class="fi-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6a67" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 20h5v-2a3 3 0 00-5.196-2.121L17 20zM9 12h6m-6 4h6m0-8h3.586a1 1 0 01.707.293L21 10"/>
+                                </svg>
+                            </div>
+                            <div class="muted">Invite members</div>
                         </summary>
-                        <div class="mt-2 px-2">
-                            <form action="{{ route('teams.invite', $currentTeam->id) }}" method="POST" class="space-y-2">
+                        <div style="margin-top:8px;padding:0 6px;">
+                            <form action="{{ route('teams.invite', $currentTeam->id) }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
                                 @csrf
                                 <input type="email" name="email" placeholder="Email address" required
-                                       class="w-full px-2 py-1 text-sm border notion-border rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white">
-                                <button type="submit" class="w-full px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">
+                                       style="width:100%;padding:6px 8px;font-size:13px;border:1px solid var(--sb-divider);border-radius:6px;background:#ffffff;">
+                                <button type="submit" style="padding:6px 8px;font-size:13px;background:#0074E4;color:#ffffff;border:none;border-radius:6px;cursor:pointer;">
                                     Send Invitation
                                 </button>
                             </form>
                         </div>
                     </details>
                     @else
-                    <div class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer text-sm notion-text opacity-50">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121L17 20zM9 12h6m-6 4h6m0-8h3.586a1 1 0 01.707.293L21 10"/>
-                        </svg>
-                        <span>Invite members</span>
+                    <div class="footer-item" style="opacity:0.6;">
+                        <div class="fi-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6a67" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 20h5v-2a3 3 0 00-5.196-2.121L17 20zM9 12h6m-6 4h6m0-8h3.586a1 1 0 01.707.293L21 10"/>
+                            </svg>
+                        </div>
+                        <div class="muted">Invite members</div>
                     </div>
                     @endif
-                    
-                    <form action="{{ route('logout') }}" method="POST" class="mt-2">
+
+                    <form action="{{ route('logout') }}" method="POST" style="margin-top:6px;">
                         @csrf
-                        <button type="submit" class="flex items-center space-x-2 px-2 py-1 rounded notion-hover cursor-pointer w-full text-left text-sm notion-text">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                            </svg>
-                            <span>Logout</span>
+                        <button type="submit" class="footer-item" style="width:100%;background:none;border:none;text-align:left;cursor:pointer;color:inherit;">
+                            <div class="fi-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6a67" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                </svg>
+                            </div>
+                            <div class="muted">Logout</div>
                         </button>
                     </form>
                 </div>
             </div>
+
+            <!-- Footer (kept empty to avoid fixed layout) -->
+            <div class="sidebar-footer" style="display:none;"></div>
         </div>
 
         <!-- Main Content Area -->
@@ -522,5 +713,45 @@
             </ul>
         </div>
     @endif
+
+    <script>
+        function openSidebarSearch() {
+            const iconRow = document.getElementById('searchIconRow');
+            const expand = document.getElementById('searchExpand');
+            const input = document.getElementById('sidebarSearchInput');
+
+            if (!expand || !iconRow) return;
+
+            // toggle visibility
+            if (expand.classList.contains('hidden')) {
+                expand.classList.remove('hidden');
+                iconRow.classList.add('hidden');
+                // focus input after it becomes visible
+                setTimeout(() => input && input.focus(), 50);
+            } else {
+                expand.classList.add('hidden');
+                iconRow.classList.remove('hidden');
+            }
+        }
+
+        // Close search on Escape or blur when focused out
+        document.addEventListener('DOMContentLoaded', function () {
+            const input = document.getElementById('sidebarSearchInput');
+            if (!input) return;
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    document.getElementById('searchExpand').classList.add('hidden');
+                    document.getElementById('searchIconRow').classList.remove('hidden');
+                }
+            });
+            input.addEventListener('blur', function () {
+                // small timeout so clicks on results (if implemented) won't immediately close it
+                setTimeout(() => {
+                    document.getElementById('searchExpand').classList.add('hidden');
+                    document.getElementById('searchIconRow').classList.remove('hidden');
+                }, 150);
+            });
+        });
+    </script>
 </body>
 </html>
