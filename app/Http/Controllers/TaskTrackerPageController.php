@@ -23,6 +23,12 @@ class TaskTrackerPageController extends Controller
             'user_id' => Auth::id(),
         ]);
 
+        // Check if we should redirect to dashboard instead
+        if ($request->input('redirect_to') === 'dashboard') {
+            return redirect()->route('dashboard')
+                             ->with('success', 'Task tracker page "' . $page->name . '" created successfully!');
+        }
+
         return redirect()->route('task-tracker-page.show', $page)
                          ->with('success', 'Task tracker page created successfully!');
     }
@@ -117,6 +123,44 @@ class TaskTrackerPageController extends Controller
         // Load page with collaborators
         $page->load(['collaborators.user']);
 
+        // Check if this is an AJAX request
+        if ($request->has('ajax') && $request->ajax == '1') {
+            $taskData = $taskTrackers->map(function ($task) {
+                return [
+                    'id' => $task->id,
+                    'name' => $task->name,
+                    'status' => $task->status,
+                    'assignee' => $task->assignee,
+                    'due_date' => $task->due_date ? $task->due_date->format('Y-m-d') : null,
+                    'priority' => $task->priority,
+                    'task_type' => $task->task_type,
+                    'task_type_icon' => $this->getTaskTypeIcon($task->task_type),
+                    'description' => $task->description,
+                    'effort_level' => $task->effort_level,
+                ];
+            });
+
+            return response()->json([
+                'taskTrackers' => $taskData,
+                'groupedTasks' => $groupedTasks ? $groupedTasks->map(function ($tasks, $status) {
+                    return $tasks->map(function ($task) {
+                        return [
+                            'id' => $task->id,
+                            'name' => $task->name,
+                            'status' => $task->status,
+                            'assignee' => $task->assignee,
+                            'due_date' => $task->due_date ? $task->due_date->format('Y-m-d') : null,
+                            'priority' => $task->priority,
+                            'task_type' => $task->task_type,
+                            'task_type_icon' => $this->getTaskTypeIcon($task->task_type),
+                            'description' => $task->description,
+                            'effort_level' => $task->effort_level,
+                        ];
+                    });
+                }) : null,
+            ]);
+        }
+
         return view('task-tracker.page', compact('page', 'taskTrackers', 'taskTrackerPages', 'ownedPages', 'sharedPages', 'view', 'groupedTasks'));
     }
 
@@ -148,7 +192,21 @@ class TaskTrackerPageController extends Controller
 
     public function destroy(TaskTrackerPage $page)
     {
+        $pageName = $page->name;
         $page->delete();
-        return redirect()->route('task-tracker.index')->with('success', 'Task tracker page deleted successfully!');
+        return redirect()->route('dashboard')->with('success', 'Task tracker page "' . $pageName . '" deleted successfully!');
+    }
+
+    private function getTaskTypeIcon($taskType)
+    {
+        $icons = [
+            'polish' => '✨',
+            'feature_request' => '💡',
+            'bug' => '🐛',
+            'enhancement' => '🚀',
+            'documentation' => '📝',
+        ];
+
+        return $icons[$taskType] ?? '📋';
     }
 }

@@ -87,7 +87,12 @@ Route::get('/dashboard', function (\Illuminate\Http\Request $request) {
         $tags = $currentTeam->tags()->get();
     }
     
-    return view('dashboard', compact('teams', 'currentTeam', 'tasks', 'tags'));
+    // Load task tracker pages data
+    $ownedPages = auth()->user()->taskTrackerPages;
+    $sharedPages = auth()->user()->collaboratedPages;
+    $taskTrackerPages = $ownedPages->merge($sharedPages);
+    
+    return view('dashboard', compact('teams', 'currentTeam', 'tasks', 'tags', 'taskTrackerPages', 'ownedPages', 'sharedPages'));
 })->middleware('auth')->name('dashboard');
 
 // Task routes

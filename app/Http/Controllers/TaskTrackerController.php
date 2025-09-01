@@ -41,6 +41,47 @@ class TaskTrackerController extends Controller
             $groupedTasks = $taskTrackers->groupBy('status');
         }
 
+        // Return JSON response for AJAX requests
+        if ($request->has('ajax') && $request->ajax == '1') {
+            // Prepare task data with additional properties needed for display
+            $taskData = $taskTrackers->map(function ($task) {
+                return [
+                    'id' => $task->id,
+                    'name' => $task->name,
+                    'description' => $task->description,
+                    'status' => $task->status,
+                    'assignee' => $task->assignee,
+                    'due_date' => $task->due_date ? $task->due_date->format('m/d/Y') : null,
+                    'priority' => $task->priority,
+                    'task_type' => $task->task_type,
+                    'task_type_icon' => $this->getTaskTypeIcon($task->task_type),
+                    'effort_level' => $task->effort_level,
+                ];
+            });
+
+            return response()->json([
+                'taskTrackers' => $taskData,
+                'groupedTasks' => $groupedTasks ? $groupedTasks->map(function ($group) {
+                    return $group->map(function ($task) {
+                        return [
+                            'id' => $task->id,
+                            'name' => $task->name,
+                            'description' => $task->description,
+                            'status' => $task->status,
+                            'assignee' => $task->assignee,
+                            'due_date' => $task->due_date ? $task->due_date->format('m/d/Y') : null,
+                            'priority' => $task->priority,
+                            'task_type' => $task->task_type,
+                            'task_type_icon' => $this->getTaskTypeIcon($task->task_type),
+                            'effort_level' => $task->effort_level,
+                        ];
+                    });
+                }) : null,
+                'view' => $view,
+                'currentTeam' => $currentTeam,
+            ]);
+        }
+
         return view('task-tracker.index', compact('teams', 'currentTeam', 'taskTrackers', 'taskTrackerPages', 'view', 'groupedTasks'));
     }
 
@@ -176,5 +217,18 @@ class TaskTrackerController extends Controller
 
         $taskTracker->delete();
         return redirect()->back()->with('success', 'Task tracker item deleted successfully!');
+    }
+
+    private function getTaskTypeIcon($taskType)
+    {
+        $icons = [
+            'polish' => '✨',
+            'feature_request' => '💡',
+            'bug' => '🐛',
+            'enhancement' => '🚀',
+            'documentation' => '📝',
+        ];
+
+        return $icons[$taskType] ?? '';
     }
 }
