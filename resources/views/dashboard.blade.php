@@ -103,7 +103,7 @@
         .nav-item {
             display:flex;
             align-items:center;
-            gap:12px;
+            gap:1px;
             padding:8px 6px;
             border-radius:8px;
             color:var(--text-dark);             /* darker label text */
@@ -124,9 +124,9 @@
         .nav-item:hover { background: rgba(55,53,47,0.04); cursor:pointer; }
 
         /* make top nav labels darker and control top-nav gap exactly */
-        .nav-list { display:flex; flex-direction:column; gap:3px; } /* exact 3px gap */
-        .nav-item { margin-top:0; padding:6px 6px; } /* remove previously added margins */
-        .nav-label { color: var(--text-dark); font-size:14px; display:inline-block; } /* darker labels */
+        .nav-list { display:flex; flex-direction:column; gap:1px; } /* exact 1px gap */
+        .nav-item { margin-top:0; padding:2px 6px; } /* minimal padding for tight spacing */
+        .nav-label { color: #888888; font-size:14px; display:inline-block; } /* dark gray labels */
         /* keep .muted for secondary/micro text only */
         .muted { color:var(--muted); font-size:13px; }
 
@@ -250,7 +250,7 @@
                 </div>
 
                 <!-- Search icon / expandable search -->
-                <div style="margin-top:8px;">
+                <div style="margin-top:3px;">
                     <div id="searchIconRow" class="nav-item" style="cursor:pointer;" onclick="openSidebarSearch()">
                         <div class="nav-icon" aria-hidden>
                             <svg id="searchIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6a67" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -268,7 +268,7 @@
                 </div>
 
                 <!-- Top nav (Search / Home / Inbox / Add new) -->
-                <div class="nav-list" style="margin-top:6px;">
+                <div class="nav-list" style="margin-top:3px;">
                     <div class="nav-item">
                         <div class="nav-icon" aria-hidden>
                             <!-- home icon outline -->
@@ -293,12 +293,6 @@
                         @endif
                     </div>
 
-                    <div class="nav-item">
-                        <div class="nav-icon" aria-hidden>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6a67" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        </div>
-                        <div class="nav-label">Add new</div>
-                    </div>
                 </div>
 
                 <!-- Divider / Section -->
