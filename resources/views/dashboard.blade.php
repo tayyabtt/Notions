@@ -339,6 +339,11 @@
                         <div style="font-size:16px;font-weight:600;color:#37352f;">Tasks Tracker</div>
                     </div>
 
+                    <div class="teamspace-item" onclick="showEmptyPage()" style="cursor:pointer;">
+                        <div class="ts-icon" style="background:#f8f9f7;color:#6b6a67;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;">📄</div>
+                        <div style="font-size:14px;color:#37352f;">empty page</div>
+                    </div>
+
                     <div class="teamspace-item" onclick="showNewTaskTrackerModal()" style="cursor:pointer;">
                         <div class="ts-icon" style="color:#6b6a67;font-size:16px;font-weight:bold;">＋</div>
                         <div style="font-size:16px;font-weight:bold;color:#6b6a67;">Add new</div>
@@ -728,6 +733,40 @@
                 </div>
             </div>
             @endif
+        </div>
+
+        <!-- Empty Page Content Section (Hidden by default) -->
+        <div id="emptyPageContent" class="flex-1 flex flex-col overflow-hidden bg-white" style="display: none;">
+            <!-- Title Section -->
+            <div class="px-16 pt-12 pb-4">
+                <input 
+                    id="pageTitle" 
+                    type="text" 
+                    class="w-full text-5xl font-bold text-gray-900 bg-transparent border-none outline-none placeholder-gray-400" 
+                    placeholder="Untitled"
+                    style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;"
+                />
+            </div>
+
+            <!-- Content Section -->
+            <div class="flex-1 px-16 pb-12">
+                <!-- Content Area -->
+                <div id="contentArea" class="min-h-full">
+                    <!-- Initial Content Block -->
+                    <div class="content-block" data-block-type="text">
+                        <div 
+                            id="contentEditable" 
+                            class="text-base text-gray-700 outline-none cursor-text min-h-6 py-1"
+                            contenteditable="true" 
+                            placeholder="Type '/' for commands"
+                            style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;"
+                            data-placeholder="Type '/' for commands"
+                            onkeydown="handleContentKeydown(event)"
+                            oninput="handleContentInput(event)"
+                        ></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Task Tracker Content Section (Hidden by default) -->
@@ -1177,6 +1216,83 @@
             <div class="p-6 text-center notion-gray">
                 <div class="text-4xl mb-4">📝</div>
                 <p class="text-lg font-medium">Loading tasks...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slash Command Dropdown -->
+    <div id="slashDropdown" class="hidden fixed bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto" style="min-width: 280px;">
+        <div class="p-2">
+            <div class="mb-3">
+                <div class="px-2 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide">Basic blocks</div>
+            </div>
+            <div class="space-y-1">
+                <div class="slash-option flex items-center px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" data-type="text" onclick="insertBlock('text')">
+                    <div class="w-8 h-8 bg-gray-100 rounded mr-3 flex items-center justify-center text-sm">T</div>
+                    <div>
+                        <div class="font-medium text-sm text-gray-900">Text</div>
+                        <div class="text-xs text-gray-500">Just start writing with plain text.</div>
+                    </div>
+                </div>
+                <div class="slash-option flex items-center px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" data-type="heading1" onclick="insertBlock('heading1')">
+                    <div class="w-8 h-8 bg-gray-100 rounded mr-3 flex items-center justify-center text-sm font-bold">H1</div>
+                    <div>
+                        <div class="font-medium text-sm text-gray-900">Heading 1</div>
+                        <div class="text-xs text-gray-500">Big section heading.</div>
+                    </div>
+                </div>
+                <div class="slash-option flex items-center px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" data-type="heading2" onclick="insertBlock('heading2')">
+                    <div class="w-8 h-8 bg-gray-100 rounded mr-3 flex items-center justify-center text-sm font-bold">H2</div>
+                    <div>
+                        <div class="font-medium text-sm text-gray-900">Heading 2</div>
+                        <div class="text-xs text-gray-500">Medium section heading.</div>
+                    </div>
+                </div>
+                <div class="slash-option flex items-center px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" data-type="heading3" onclick="insertBlock('heading3')">
+                    <div class="w-8 h-8 bg-gray-100 rounded mr-3 flex items-center justify-center text-sm font-bold">H3</div>
+                    <div>
+                        <div class="font-medium text-sm text-gray-900">Heading 3</div>
+                        <div class="text-xs text-gray-500">Small section heading.</div>
+                    </div>
+                </div>
+                <div class="slash-option flex items-center px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" data-type="bulletList" onclick="insertBlock('bulletList')">
+                    <div class="w-8 h-8 bg-gray-100 rounded mr-3 flex items-center justify-center text-sm">•</div>
+                    <div>
+                        <div class="font-medium text-sm text-gray-900">Bulleted list</div>
+                        <div class="text-xs text-gray-500">Create a simple bulleted list.</div>
+                    </div>
+                </div>
+                <div class="slash-option flex items-center px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" data-type="numberedList" onclick="insertBlock('numberedList')">
+                    <div class="w-8 h-8 bg-gray-100 rounded mr-3 flex items-center justify-center text-sm">1.</div>
+                    <div>
+                        <div class="font-medium text-sm text-gray-900">Numbered list</div>
+                        <div class="text-xs text-gray-500">Create a list with numbering.</div>
+                    </div>
+                </div>
+                <div class="slash-option flex items-center px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" data-type="todoList" onclick="insertBlock('todoList')">
+                    <div class="w-8 h-8 bg-gray-100 rounded mr-3 flex items-center justify-center text-sm">☐</div>
+                    <div>
+                        <div class="font-medium text-sm text-gray-900">To-do list</div>
+                        <div class="text-xs text-gray-500">Track tasks with a to-do list.</div>
+                    </div>
+                </div>
+                <div class="slash-option flex items-center px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" data-type="image" onclick="insertBlock('image')">
+                    <div class="w-8 h-8 bg-gray-100 rounded mr-3 flex items-center justify-center text-sm">🖼</div>
+                    <div>
+                        <div class="font-medium text-sm text-gray-900">Image</div>
+                        <div class="text-xs text-gray-500">Upload or embed with a link.</div>
+                    </div>
+                </div>
+                <div class="slash-option flex items-center px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" data-type="file" onclick="insertBlock('file')">
+                    <div class="w-8 h-8 bg-gray-100 rounded mr-3 flex items-center justify-center text-sm">📄</div>
+                    <div>
+                        <div class="font-medium text-sm text-gray-900">File</div>
+                        <div class="text-xs text-gray-500">Upload a file to this page.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 pt-2 border-t border-gray-200">
+                <div class="px-2 py-1 text-xs text-gray-400">Type '/' on the page</div>
             </div>
         </div>
     </div>
@@ -1772,6 +1888,261 @@
                 }, 150);
             });
         });
+
+        // Empty Page Functions
+        function showEmptyPage() {
+            // Hide the main dashboard content
+            const mainContent = document.getElementById('mainDashboardContent');
+            if (mainContent) {
+                mainContent.style.display = 'none';
+            }
+
+            // Hide task tracker content if it's visible
+            const taskTrackerContent = document.getElementById('taskTrackerContent');
+            if (taskTrackerContent) {
+                taskTrackerContent.style.display = 'none';
+            }
+
+            // Show the empty page content
+            const emptyPageContent = document.getElementById('emptyPageContent');
+            if (emptyPageContent) {
+                emptyPageContent.style.display = 'flex';
+                
+                // Focus on the content editable area
+                setTimeout(() => {
+                    const contentEditable = document.getElementById('contentEditable');
+                    if (contentEditable) {
+                        contentEditable.focus();
+                    }
+                }, 100);
+            }
+        }
+
+        // Handle content keydown events
+        function handleContentKeydown(event) {
+            if (event.key === '/') {
+                // Check if this is the first character or preceded by whitespace
+                const selection = window.getSelection();
+                const range = selection.getRangeAt(0);
+                const textContent = range.startContainer.textContent || '';
+                const cursorPosition = range.startOffset;
+                
+                if (cursorPosition === 0 || /\s/.test(textContent.charAt(cursorPosition - 1))) {
+                    setTimeout(() => {
+                        showSlashDropdown(event.target);
+                    }, 10);
+                }
+            }
+        }
+
+        // Handle content input events
+        function handleContentInput(event) {
+            const element = event.target;
+            
+            // Handle placeholder visibility
+            if (element.textContent.trim() === '') {
+                element.classList.add('empty');
+            } else {
+                element.classList.remove('empty');
+            }
+
+            // Check if user typed '/' and show dropdown
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                const textContent = range.startContainer.textContent || '';
+                const cursorPosition = range.startOffset;
+                
+                if (textContent.charAt(cursorPosition - 1) === '/' && 
+                    (cursorPosition === 1 || /\s/.test(textContent.charAt(cursorPosition - 2)))) {
+                    showSlashDropdown(element);
+                }
+            }
+        }
+
+        // Show slash dropdown
+        function showSlashDropdown(targetElement) {
+            const dropdown = document.getElementById('slashDropdown');
+            if (!dropdown) return;
+
+            // Position the dropdown near the cursor
+            const rect = targetElement.getBoundingClientRect();
+            dropdown.style.left = rect.left + 'px';
+            dropdown.style.top = (rect.bottom + 5) + 'px';
+            
+            dropdown.classList.remove('hidden');
+            
+            // Store reference to the target element
+            dropdown.targetElement = targetElement;
+
+            // Focus on the first option
+            const firstOption = dropdown.querySelector('.slash-option');
+            if (firstOption) {
+                firstOption.classList.add('bg-gray-100');
+            }
+        }
+
+        // Hide slash dropdown
+        function hideSlashDropdown() {
+            const dropdown = document.getElementById('slashDropdown');
+            if (dropdown) {
+                dropdown.classList.add('hidden');
+                dropdown.targetElement = null;
+                
+                // Remove highlight from all options
+                const options = dropdown.querySelectorAll('.slash-option');
+                options.forEach(option => option.classList.remove('bg-gray-100'));
+            }
+        }
+
+        // Insert block based on type
+        function insertBlock(blockType) {
+            const dropdown = document.getElementById('slashDropdown');
+            const targetElement = dropdown ? dropdown.targetElement : null;
+            
+            if (!targetElement) return;
+            
+            // Remove the '/' character
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                const textContent = range.startContainer.textContent || '';
+                const cursorPosition = range.startOffset;
+                
+                // Find the slash position
+                let slashPosition = cursorPosition - 1;
+                while (slashPosition >= 0 && textContent.charAt(slashPosition) !== '/') {
+                    slashPosition--;
+                }
+                
+                if (slashPosition >= 0) {
+                    // Remove the slash and any text after it up to cursor
+                    const newRange = document.createRange();
+                    newRange.setStart(range.startContainer, slashPosition);
+                    newRange.setEnd(range.startContainer, cursorPosition);
+                    newRange.deleteContents();
+                }
+            }
+            
+            // Insert the appropriate block
+            switch (blockType) {
+                case 'text':
+                    targetElement.innerHTML = '';
+                    targetElement.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1';
+                    break;
+                case 'heading1':
+                    targetElement.innerHTML = '';
+                    targetElement.className = 'text-4xl font-bold text-gray-900 outline-none cursor-text min-h-12 py-2';
+                    break;
+                case 'heading2':
+                    targetElement.innerHTML = '';
+                    targetElement.className = 'text-3xl font-bold text-gray-900 outline-none cursor-text min-h-10 py-2';
+                    break;
+                case 'heading3':
+                    targetElement.innerHTML = '';
+                    targetElement.className = 'text-2xl font-bold text-gray-900 outline-none cursor-text min-h-8 py-1';
+                    break;
+                case 'bulletList':
+                    targetElement.innerHTML = '• ';
+                    targetElement.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1 pl-4';
+                    break;
+                case 'numberedList':
+                    targetElement.innerHTML = '1. ';
+                    targetElement.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1 pl-4';
+                    break;
+                case 'todoList':
+                    targetElement.innerHTML = '<input type="checkbox" class="mr-2 inline-block"> ';
+                    targetElement.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1 flex items-center';
+                    break;
+                case 'image':
+                    targetElement.innerHTML = '<div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-500">Click to upload an image or drag and drop</div>';
+                    targetElement.className = 'outline-none cursor-pointer min-h-32 py-2';
+                    break;
+                case 'file':
+                    targetElement.innerHTML = '<div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-500">Click to upload a file or drag and drop</div>';
+                    targetElement.className = 'outline-none cursor-pointer min-h-32 py-2';
+                    break;
+            }
+            
+            // Update the block type
+            const contentBlock = targetElement.closest('.content-block');
+            if (contentBlock) {
+                contentBlock.setAttribute('data-block-type', blockType);
+            }
+            
+            // Focus back on the element
+            targetElement.focus();
+            
+            // Position cursor at the end
+            const range = document.createRange();
+            const sel = window.getSelection();
+            if (targetElement.childNodes.length > 0) {
+                const lastNode = targetElement.childNodes[targetElement.childNodes.length - 1];
+                if (lastNode.nodeType === Node.TEXT_NODE) {
+                    range.setStartAfter(lastNode);
+                } else {
+                    range.setStart(targetElement, targetElement.childNodes.length);
+                }
+            } else {
+                range.setStart(targetElement, 0);
+            }
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            
+            // Hide the dropdown
+            hideSlashDropdown();
+        }
+
+        // Handle clicks outside dropdown to close it
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('slashDropdown');
+            if (dropdown && !dropdown.contains(event.target)) {
+                hideSlashDropdown();
+            }
+        });
+
+        // Handle keyboard navigation in dropdown
+        document.addEventListener('keydown', function(event) {
+            const dropdown = document.getElementById('slashDropdown');
+            if (!dropdown || dropdown.classList.contains('hidden')) return;
+            
+            const options = dropdown.querySelectorAll('.slash-option');
+            const currentSelected = dropdown.querySelector('.slash-option.bg-gray-100');
+            let selectedIndex = Array.from(options).indexOf(currentSelected);
+            
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                if (currentSelected) currentSelected.classList.remove('bg-gray-100');
+                selectedIndex = (selectedIndex + 1) % options.length;
+                options[selectedIndex].classList.add('bg-gray-100');
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                if (currentSelected) currentSelected.classList.remove('bg-gray-100');
+                selectedIndex = selectedIndex <= 0 ? options.length - 1 : selectedIndex - 1;
+                options[selectedIndex].classList.add('bg-gray-100');
+            } else if (event.key === 'Enter') {
+                event.preventDefault();
+                if (currentSelected) {
+                    currentSelected.click();
+                }
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                hideSlashDropdown();
+            }
+        });
+
+        // Add CSS for placeholder styling
+        const style = document.createElement('style');
+        style.textContent = `
+            [contenteditable]:empty:before {
+                content: attr(data-placeholder);
+                color: #9CA3AF;
+                pointer-events: none;
+            }
+        `;
+        document.head.appendChild(style);
+
     </script>
 </body>
 </html>
