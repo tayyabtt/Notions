@@ -197,7 +197,7 @@
             padding-top:10px;
             display:flex;
             flex-direction:column;
-            gap:3px;              /* exact 3px gap */
+            gap:1px;              /* exact 1px gap */
         }
         .footer-item {
             display:flex;
@@ -228,14 +228,15 @@
     <div class="flex h-screen overflow-hidden">
         <!-- Left Sidebar -->
         <div class="notion-sidebar">
-            <div class="sidebar-scroll">
-                {{-- Ensure variables exist when controller doesn't provide them --}}
-                @php
-                    $ownedPages  = $ownedPages  ?? collect();
-                    $sharedPages = $sharedPages ?? collect();
-                    $page        = $page ?? null;
-                @endphp
+            {{-- Ensure variables exist when controller doesn't provide them --}}
+            @php
+                $ownedPages  = $ownedPages  ?? collect();
+                $sharedPages = $sharedPages ?? collect();
+                $page        = $page ?? null;
+            @endphp
 
+            <!-- Fixed Header Section (Non-scrollable) -->
+            <div style="padding: 12px 10px; border-bottom: 1px solid var(--sb-divider);">
                 <!-- Workspace header -->
                 <div class="workspace-header">
                     <div class="workspace-avatar">T</div>
@@ -258,7 +259,7 @@
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
                         </div>
-                        <div class="nav-label">Search</div>
+                        <div class="nav-label" style="color:#666666;">Search</div>
                     </div>
 
                     <div id="searchExpand" class="hidden" style="margin-top:8px;">
@@ -277,7 +278,7 @@
                                 <path d="M5 21h14a1 1 0 0 0 1-1V11"></path>
                             </svg>
                         </div>
-                        <div class="nav-label"><a href="{{ route('dashboard') }}">Home</a></div>
+                        <div class="nav-label" style="color:#666666;"><a href="{{ route('dashboard') }}" style="color:#666666;">Home</a></div>
                     </div>
 
                     <div class="nav-item">
@@ -287,19 +288,36 @@
                                 <path d="M7 8V6a5 5 0 0 1 10 0v2"></path>
                             </svg>
                         </div>
-                        <div class="nav-label"><a href="{{ route('notifications.index') }}">Inbox</a></div>
+                        <div class="nav-label" style="color:#666666;"><a href="{{ route('notifications.index') }}" style="color:#666666;">Inbox</a></div>
                         @if(auth()->user()->unreadNotifications()->count() > 0)
                             <span class="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">{{ auth()->user()->unreadNotifications()->count() }}</span>
                         @endif
                     </div>
 
                 </div>
+            </div>
+
+            <!-- Scrollable Section (starts from Private) -->
+            <div class="sidebar-scroll" style="flex: 1; overflow-y: auto;">
+                <!-- Private Section -->
+                <div class="sidebar-section-title">Private</div>
+                
+                <div class="nav-item" style="cursor:pointer;">
+                    <div class="nav-icon" aria-hidden>
+                        <!-- plus icon -->
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6a67" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </div>
+                    <div class="nav-label">Add new</div>
+                </div>
 
                 <!-- Divider / Section -->
-                <div class="sidebar-section-title">Teamspaces</div>
+                <div class="sidebar-section-title" style="margin-top:24px;">Teamspaces</div>
 
                 <!-- Teamspaces list -->
-                <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;flex-direction:column;gap:1px;">
                     <a class="teamspace-item" href="#">
                         <div class="ts-icon ts-workspace">
                             <!-- orange house -->
@@ -311,30 +329,19 @@
                         <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->name }}'s Workspace</div>
                     </a>
 
-                    <a class="teamspace-item" href="#">
-                        <div class="ts-icon ts-goals">
-                            <!-- goals chart -->
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0074E4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 3v18h18"></path>
-                                <path d="M7 13l4-4 4 8 4-10"></path>
-                            </svg>
-                        </div>
-                        <div class="muted">Goals</div>
-                    </a>
-
                     <div class="teamspace-item" onclick="showTaskTracker()" style="cursor:pointer;">
                         <div class="ts-icon ts-tasks" style="border-radius:6px;">
                             <!-- green check -->
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00B34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#006B33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M20 6L9 17l-5-5"></path>
                             </svg>
                         </div>
-                        <div class="muted">Tasks Tracker</div>
+                        <div style="font-size:16px;font-weight:600;color:#37352f;">Tasks Tracker</div>
                     </div>
 
                     <div class="teamspace-item" onclick="showNewTaskTrackerModal()" style="cursor:pointer;">
-                        <div class="ts-icon" style="color:#6b6a67">＋</div>
-                        <div class="muted">Add new</div>
+                        <div class="ts-icon" style="color:#6b6a67;font-size:16px;font-weight:bold;">＋</div>
+                        <div style="font-size:16px;font-weight:bold;color:#6b6a67;">Add new</div>
                     </div>
 
                     <!-- owned/shared pages compact list (moved here below Tasks Tracker) -->
@@ -389,9 +396,9 @@
 
                 <!-- Settings / Marketplace / Trash / Invite / Logout moved into same scroll area -->
                 <div class="footer-block">
-                    <a href="#" class="footer-item"><div class="fi-icon">⚙️</div><div class="muted">Settings</div></a>
-                    <a href="#" class="footer-item"><div class="fi-icon">🛒</div><div class="muted">Marketplace</div></a>
-                    <a href="{{ route('trash.index') }}" class="footer-item"><div class="fi-icon">🗑️</div><div class="muted">Trash</div></a>
+                    <a href="#" class="footer-item"><div class="fi-icon">⚙️</div><div style="color:#666666;">Settings</div></a>
+                    <a href="#" class="footer-item"><div class="fi-icon">🛒</div><div style="color:#666666;">Marketplace</div></a>
+                    <a href="{{ route('trash.index') }}" class="footer-item"><div class="fi-icon">🗑️</div><div style="color:#666666;">Trash</div></a>
 
                     <div style="border-top:1px solid transparent;margin:6px 0;"></div>
 
