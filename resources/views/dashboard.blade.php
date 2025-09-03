@@ -1908,6 +1908,9 @@
             if (emptyPageContent) {
                 emptyPageContent.style.display = 'flex';
                 
+                // Load saved content
+                loadPageContent();
+                
                 // Focus on the content editable area
                 setTimeout(() => {
                     const contentEditable = document.getElementById('contentEditable');
@@ -1946,6 +1949,9 @@
                 element.classList.remove('empty');
             }
 
+            // Auto-save content (preserve all user input)
+            savePageContent();
+
             // Check if user typed '/' and show dropdown
             const selection = window.getSelection();
             if (selection.rangeCount > 0) {
@@ -1957,6 +1963,115 @@
                     (cursorPosition === 1 || /\s/.test(textContent.charAt(cursorPosition - 2)))) {
                     showSlashDropdown(element);
                 }
+            }
+        }
+
+        // Save page content automatically
+        function savePageContent() {
+            const pageTitle = document.getElementById('pageTitle');
+            const contentArea = document.getElementById('contentArea');
+            
+            if (!pageTitle || !contentArea) return;
+            
+            const pageData = {
+                title: pageTitle.value || 'Untitled',
+                blocks: []
+            };
+            
+            // Collect all content blocks
+            const blocks = contentArea.querySelectorAll('.content-block');
+            blocks.forEach(block => {
+                const contentElement = block.querySelector('[contenteditable]');
+                if (contentElement) {
+                    pageData.blocks.push({
+                        type: block.getAttribute('data-block-type') || 'text',
+                        content: contentElement.innerHTML,
+                        textContent: contentElement.textContent
+                    });
+                }
+            });
+            
+            // Store in localStorage for now (you can modify this to save to server)
+            localStorage.setItem('emptyPageContent', JSON.stringify(pageData));
+            console.log('Content saved:', pageData);
+        }
+
+        // Load saved content when page opens
+        function loadPageContent() {
+            try {
+                const savedData = localStorage.getItem('emptyPageContent');
+                if (savedData) {
+                    const pageData = JSON.parse(savedData);
+                    
+                    // Load title
+                    const pageTitle = document.getElementById('pageTitle');
+                    if (pageTitle && pageData.title) {
+                        pageTitle.value = pageData.title;
+                    }
+                    
+                    // Load blocks
+                    const contentArea = document.getElementById('contentArea');
+                    if (contentArea && pageData.blocks && pageData.blocks.length > 0) {
+                        // Clear existing content
+                        contentArea.innerHTML = '';
+                        
+                        // Recreate blocks
+                        pageData.blocks.forEach(blockData => {
+                            const newBlock = document.createElement('div');
+                            newBlock.className = 'content-block mb-2';
+                            newBlock.setAttribute('data-block-type', blockData.type);
+                            
+                            const newContent = document.createElement('div');
+                            newContent.contentEditable = true;
+                            newContent.innerHTML = blockData.content;
+                            newContent.onkeydown = handleContentKeydown;
+                            newContent.oninput = handleContentInput;
+                            newContent.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+                            
+                            // Apply appropriate styling based on block type using inline styles to prevent cascade
+                            const baseStyles = 'outline-none cursor-text';
+                            switch (blockData.type) {
+                                case 'heading1':
+                                    newContent.className = `${baseStyles} min-h-16 py-3 block-type-heading1`;
+                                    newContent.style.fontSize = '3rem';
+                                    newContent.style.fontWeight = '700';
+                                    newContent.style.color = '#111827';
+                                    newContent.style.lineHeight = '1.2';
+                                    break;
+                                case 'heading2':
+                                    newContent.className = `${baseStyles} min-h-12 py-2 block-type-heading2`;
+                                    newContent.style.fontSize = '1.875rem';
+                                    newContent.style.fontWeight = '700';
+                                    newContent.style.color = '#111827';
+                                    newContent.style.lineHeight = '1.3';
+                                    break;
+                                case 'heading3':
+                                    newContent.className = `${baseStyles} min-h-8 py-1 block-type-heading3`;
+                                    newContent.style.fontSize = '1.25rem';
+                                    newContent.style.fontWeight = '700';
+                                    newContent.style.color = '#111827';
+                                    newContent.style.lineHeight = '1.4';
+                                    break;
+                                case 'bulletList':
+                                    newContent.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1 pl-4';
+                                    break;
+                                case 'numberedList':
+                                    newContent.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1 pl-4';
+                                    break;
+                                case 'todoList':
+                                    newContent.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1 flex items-center';
+                                    break;
+                                default:
+                                    newContent.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1';
+                            }
+                            
+                            newBlock.appendChild(newContent);
+                            contentArea.appendChild(newBlock);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.log('No saved content to load or error loading:', error);
             }
         }
 
@@ -2016,76 +2131,212 @@
                 }
                 
                 if (slashPosition >= 0) {
-                    // Remove the slash and any text after it up to cursor
+                    // Remove the slash character
                     const newRange = document.createRange();
                     newRange.setStart(range.startContainer, slashPosition);
-                    newRange.setEnd(range.startContainer, cursorPosition);
+                    newRange.setEnd(range.startContainer, slashPosition + 1);
                     newRange.deleteContents();
                 }
             }
             
-            // Insert the appropriate block
-            switch (blockType) {
-                case 'text':
-                    targetElement.innerHTML = '';
-                    targetElement.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1';
-                    break;
-                case 'heading1':
-                    targetElement.innerHTML = '';
-                    targetElement.className = 'text-4xl font-bold text-gray-900 outline-none cursor-text min-h-12 py-2';
-                    break;
-                case 'heading2':
-                    targetElement.innerHTML = '';
-                    targetElement.className = 'text-3xl font-bold text-gray-900 outline-none cursor-text min-h-10 py-2';
-                    break;
-                case 'heading3':
-                    targetElement.innerHTML = '';
-                    targetElement.className = 'text-2xl font-bold text-gray-900 outline-none cursor-text min-h-8 py-1';
-                    break;
-                case 'bulletList':
-                    targetElement.innerHTML = '• ';
-                    targetElement.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1 pl-4';
-                    break;
-                case 'numberedList':
-                    targetElement.innerHTML = '1. ';
-                    targetElement.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1 pl-4';
-                    break;
-                case 'todoList':
-                    targetElement.innerHTML = '<input type="checkbox" class="mr-2 inline-block"> ';
-                    targetElement.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1 flex items-center';
-                    break;
-                case 'image':
-                    targetElement.innerHTML = '<div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-500">Click to upload an image or drag and drop</div>';
-                    targetElement.className = 'outline-none cursor-pointer min-h-32 py-2';
-                    break;
-                case 'file':
-                    targetElement.innerHTML = '<div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-500">Click to upload a file or drag and drop</div>';
-                    targetElement.className = 'outline-none cursor-pointer min-h-32 py-2';
-                    break;
+            // Get the current block
+            const currentBlock = targetElement.closest('.content-block');
+            const currentBlockType = currentBlock ? currentBlock.getAttribute('data-block-type') : null;
+            
+            // Store the current text content (clean text only after removing slash)
+            let currentTextContent = targetElement.textContent || '';
+            
+            // Check if we should create a new block or modify existing
+            // Create new block if current element has content AND we're changing from a heading
+            const shouldCreateNewBlock = currentTextContent.trim() !== '' && 
+                                       (currentBlockType === 'heading1' || currentBlockType === 'heading2' || currentBlockType === 'heading3');
+            
+            if (shouldCreateNewBlock) {
+                // Create a new block instead of modifying the current one
+                const contentArea = document.getElementById('contentArea');
+                const newBlock = document.createElement('div');
+                newBlock.className = 'content-block mb-2';
+                newBlock.setAttribute('data-block-type', blockType);
+                
+                const newContent = document.createElement('div');
+                newContent.contentEditable = true;
+                newContent.onkeydown = handleContentKeydown;
+                newContent.oninput = handleContentInput;
+                newContent.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+                newContent.style.outline = 'none';
+                newContent.style.cursor = 'text';
+                
+                // Apply block-specific styling for new block
+                switch (blockType) {
+                    case 'text':
+                        newContent.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1 block-type-text';
+                        newContent.setAttribute('data-placeholder', 'Type \'/\' for commands');
+                        break;
+                    case 'heading1':
+                        newContent.className = 'outline-none cursor-text min-h-16 py-3 block-type-heading1';
+                        newContent.style.fontSize = '3rem';
+                        newContent.style.fontWeight = '700';
+                        newContent.style.color = '#111827';
+                        newContent.style.lineHeight = '1.2';
+                        newContent.setAttribute('data-placeholder', 'Heading 1');
+                        break;
+                    case 'heading2':
+                        newContent.className = 'outline-none cursor-text min-h-12 py-2 block-type-heading2';
+                        newContent.style.fontSize = '1.875rem';
+                        newContent.style.fontWeight = '700';
+                        newContent.style.color = '#111827';
+                        newContent.style.lineHeight = '1.3';
+                        newContent.setAttribute('data-placeholder', 'Heading 2');
+                        break;
+                    case 'heading3':
+                        newContent.className = 'outline-none cursor-text min-h-8 py-1 block-type-heading3';
+                        newContent.style.fontSize = '1.25rem';
+                        newContent.style.fontWeight = '700';
+                        newContent.style.color = '#111827';
+                        newContent.style.lineHeight = '1.4';
+                        newContent.setAttribute('data-placeholder', 'Heading 3');
+                        break;
+                    case 'bulletList':
+                        newContent.textContent = '• ';
+                        newContent.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1 pl-4 block-type-bulletList';
+                        break;
+                    case 'numberedList':
+                        newContent.textContent = '1. ';
+                        newContent.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1 pl-4 block-type-numberedList';
+                        break;
+                }
+                
+                newBlock.appendChild(newContent);
+                
+                // Insert after current block
+                currentBlock.parentNode.insertBefore(newBlock, currentBlock.nextSibling);
+                
+                // Focus on new block
+                newContent.focus();
+                
+                // Hide dropdown
+                hideSlashDropdown();
+                return;
             }
             
-            // Update the block type
-            const contentBlock = targetElement.closest('.content-block');
-            if (contentBlock) {
-                contentBlock.setAttribute('data-block-type', blockType);
+            // Clean up the text content to remove formatting characters ONLY when changing FROM lists
+            if (currentBlockType === 'bulletList' || currentBlockType === 'numberedList') {
+                currentTextContent = currentTextContent.replace(/^•\s*/, '').replace(/^\d+\.\s*/, '');
+            }
+            
+            // Ensure we only modify THIS specific element and nothing else
+            if (!targetElement || !targetElement.isContentEditable) {
+                console.error('Invalid target element for block insertion');
+                return;
+            }
+            
+            // Reset this element ONLY - completely clear all classes and styles
+            targetElement.removeAttribute('class');
+            targetElement.removeAttribute('style');
+            
+            // Set base font family for all elements
+            targetElement.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+            targetElement.style.outline = 'none';
+            targetElement.style.cursor = 'text';
+            
+            // Apply block-specific styling using individual style properties (consistent with loadPageContent)
+            switch (blockType) {
+                case 'text':
+                    targetElement.textContent = currentTextContent;
+                    targetElement.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1 block-type-text';
+                    targetElement.setAttribute('data-placeholder', 'Type \'/\' for commands');
+                    if (currentBlock) currentBlock.setAttribute('data-block-type', 'text');
+                    break;
+                    
+                case 'heading1':
+                    targetElement.textContent = currentTextContent;
+                    targetElement.className = 'outline-none cursor-text min-h-16 py-3 block-type-heading1';
+                    targetElement.style.fontSize = '3rem';
+                    targetElement.style.fontWeight = '700';
+                    targetElement.style.color = '#111827';
+                    targetElement.style.lineHeight = '1.2';
+                    targetElement.setAttribute('data-placeholder', 'Heading 1');
+                    if (currentBlock) currentBlock.setAttribute('data-block-type', 'heading1');
+                    break;
+                    
+                case 'heading2':
+                    targetElement.textContent = currentTextContent;
+                    targetElement.className = 'outline-none cursor-text min-h-12 py-2 block-type-heading2';
+                    targetElement.style.fontSize = '1.875rem';
+                    targetElement.style.fontWeight = '700';
+                    targetElement.style.color = '#111827';
+                    targetElement.style.lineHeight = '1.3';
+                    targetElement.setAttribute('data-placeholder', 'Heading 2');
+                    if (currentBlock) currentBlock.setAttribute('data-block-type', 'heading2');
+                    break;
+                    
+                case 'heading3':
+                    targetElement.textContent = currentTextContent;
+                    targetElement.className = 'outline-none cursor-text min-h-8 py-1 block-type-heading3';
+                    targetElement.style.fontSize = '1.25rem';
+                    targetElement.style.fontWeight = '700';
+                    targetElement.style.color = '#111827';
+                    targetElement.style.lineHeight = '1.4';
+                    targetElement.setAttribute('data-placeholder', 'Heading 3');
+                    if (currentBlock) currentBlock.setAttribute('data-block-type', 'heading3');
+                    break;
+                    
+                case 'bulletList':
+                    // Add bullet if not present
+                    const bulletContent = currentTextContent.startsWith('•') ? currentTextContent : '• ' + currentTextContent;
+                    targetElement.textContent = bulletContent;
+                    targetElement.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1 pl-4 block-type-bulletList';
+                    if (currentBlock) currentBlock.setAttribute('data-block-type', 'bulletList');
+                    break;
+                    
+                case 'numberedList':
+                    // Add number if not present
+                    const numberedContent = /^\d+\./.test(currentTextContent) ? currentTextContent : '1. ' + currentTextContent;
+                    targetElement.textContent = numberedContent;
+                    targetElement.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1 pl-4 block-type-numberedList';
+                    if (currentBlock) currentBlock.setAttribute('data-block-type', 'numberedList');
+                    break;
+                    
+                case 'todoList':
+                    // Create checkbox structure using plain HTML
+                    const checkboxHTML = '<input type="checkbox" style="margin-right: 0.5rem; display: inline-block;"> ' + currentTextContent;
+                    targetElement.innerHTML = checkboxHTML;
+                    targetElement.className = 'text-base text-gray-700 outline-none cursor-text min-h-6 py-1 flex items-center block-type-todoList';
+                    if (currentBlock) currentBlock.setAttribute('data-block-type', 'todoList');
+                    break;
+                    
+                case 'image':
+                    targetElement.innerHTML = '<div style="border: 2px dashed #d1d5db; border-radius: 0.5rem; padding: 2rem; text-align: center; color: #6b7280;">Click to upload an image or drag and drop</div>';
+                    targetElement.className = 'outline-none cursor-pointer min-h-32 py-2 block-type-image';
+                    if (currentBlock) currentBlock.setAttribute('data-block-type', 'image');
+                    break;
+                    
+                case 'file':
+                    targetElement.innerHTML = '<div style="border: 2px dashed #d1d5db; border-radius: 0.5rem; padding: 2rem; text-align: center; color: #6b7280;">Click to upload a file or drag and drop</div>';
+                    targetElement.className = 'outline-none cursor-pointer min-h-32 py-2 block-type-file';
+                    if (currentBlock) currentBlock.setAttribute('data-block-type', 'file');
+                    break;
             }
             
             // Focus back on the element
             targetElement.focus();
             
-            // Position cursor at the end
+            // Position cursor at the end of content
             const range = document.createRange();
             const sel = window.getSelection();
+            
+            // For text content, position at the end
             if (targetElement.childNodes.length > 0) {
                 const lastNode = targetElement.childNodes[targetElement.childNodes.length - 1];
                 if (lastNode.nodeType === Node.TEXT_NODE) {
-                    range.setStartAfter(lastNode);
+                    range.setStart(lastNode, lastNode.textContent.length);
                 } else {
                     range.setStart(targetElement, targetElement.childNodes.length);
                 }
             } else {
                 range.setStart(targetElement, 0);
             }
+            
             range.collapse(true);
             sel.removeAllRanges();
             sel.addRange(range);
@@ -2132,13 +2383,42 @@
             }
         });
 
-        // Add CSS for placeholder styling
+        // Add CSS for placeholder styling and heading isolation
         const style = document.createElement('style');
         style.textContent = `
             [contenteditable]:empty:before {
                 content: attr(data-placeholder);
                 color: #9CA3AF;
                 pointer-events: none;
+            }
+            
+            /* Ensure heading styles are properly isolated */
+            .content-block-heading1 {
+                font-size: 3rem !important;
+                font-weight: bold !important;
+                line-height: 1.2 !important;
+                color: #111827 !important;
+            }
+            
+            .content-block-heading2 {
+                font-size: 1.875rem !important;
+                font-weight: bold !important;
+                line-height: 1.3 !important;
+                color: #111827 !important;
+            }
+            
+            .content-block-heading3 {
+                font-size: 1.25rem !important;
+                font-weight: bold !important;
+                line-height: 1.4 !important;
+                color: #111827 !important;
+            }
+            
+            .content-block-text {
+                font-size: 1rem !important;
+                font-weight: normal !important;
+                line-height: 1.5 !important;
+                color: #374151 !important;
             }
         `;
         document.head.appendChild(style);
